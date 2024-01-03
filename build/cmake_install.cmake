@@ -1,4 +1,4 @@
-# Install script for directory: /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte
+# Install script for directory: /home/bruno/Documentos/fcg
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/bruno/Documentos/fcg/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

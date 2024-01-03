@@ -41,7 +41,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "main::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-main-Debug-f94a38355311e95a2f58.json",
+					"jsonFile" : "target-main-Debug-59cd3f47ee328e132135.json",
 					"name" : "main",
 					"projectIndex" : 0
 				},
@@ -58,8 +58,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "/home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/build",
-		"source" : "/home/bruno/Documentos/Laboratorio_3_Codigo_Fonte"
+		"build" : "/home/bruno/Documentos/fcg/build",
+		"source" : "/home/bruno/Documentos/fcg"
 	},
 	"version" : 
 	{

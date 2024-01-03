@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte
+CMAKE_SOURCE_DIR = /home/bruno/Documentos/fcg
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/build
+CMAKE_BINARY_DIR = /home/bruno/Documentos/fcg/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/main.dir/depend.make
@@ -72,44 +72,44 @@ include CMakeFiles/main.dir/flags.make
 CMakeFiles/main.dir/src/main.cpp.o: CMakeFiles/main.dir/flags.make
 CMakeFiles/main.dir/src/main.cpp.o: ../src/main.cpp
 CMakeFiles/main.dir/src/main.cpp.o: CMakeFiles/main.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/main.dir/src/main.cpp.o"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/src/main.cpp.o -MF CMakeFiles/main.dir/src/main.cpp.o.d -o CMakeFiles/main.dir/src/main.cpp.o -c /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/src/main.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/bruno/Documentos/fcg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/main.dir/src/main.cpp.o"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/src/main.cpp.o -MF CMakeFiles/main.dir/src/main.cpp.o.d -o CMakeFiles/main.dir/src/main.cpp.o -c /home/bruno/Documentos/fcg/src/main.cpp
 
 CMakeFiles/main.dir/src/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main.dir/src/main.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/src/main.cpp > CMakeFiles/main.dir/src/main.cpp.i
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/bruno/Documentos/fcg/src/main.cpp > CMakeFiles/main.dir/src/main.cpp.i
 
 CMakeFiles/main.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main.dir/src/main.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/src/main.cpp -o CMakeFiles/main.dir/src/main.cpp.s
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/bruno/Documentos/fcg/src/main.cpp -o CMakeFiles/main.dir/src/main.cpp.s
 
 CMakeFiles/main.dir/src/textrendering.cpp.o: CMakeFiles/main.dir/flags.make
 CMakeFiles/main.dir/src/textrendering.cpp.o: ../src/textrendering.cpp
 CMakeFiles/main.dir/src/textrendering.cpp.o: CMakeFiles/main.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/main.dir/src/textrendering.cpp.o"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/src/textrendering.cpp.o -MF CMakeFiles/main.dir/src/textrendering.cpp.o.d -o CMakeFiles/main.dir/src/textrendering.cpp.o -c /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/src/textrendering.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/bruno/Documentos/fcg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/main.dir/src/textrendering.cpp.o"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/src/textrendering.cpp.o -MF CMakeFiles/main.dir/src/textrendering.cpp.o.d -o CMakeFiles/main.dir/src/textrendering.cpp.o -c /home/bruno/Documentos/fcg/src/textrendering.cpp
 
 CMakeFiles/main.dir/src/textrendering.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main.dir/src/textrendering.cpp.i"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/src/textrendering.cpp > CMakeFiles/main.dir/src/textrendering.cpp.i
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/bruno/Documentos/fcg/src/textrendering.cpp > CMakeFiles/main.dir/src/textrendering.cpp.i
 
 CMakeFiles/main.dir/src/textrendering.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main.dir/src/textrendering.cpp.s"
-	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/src/textrendering.cpp -o CMakeFiles/main.dir/src/textrendering.cpp.s
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/bruno/Documentos/fcg/src/textrendering.cpp -o CMakeFiles/main.dir/src/textrendering.cpp.s
 
 CMakeFiles/main.dir/src/glad.c.o: CMakeFiles/main.dir/flags.make
 CMakeFiles/main.dir/src/glad.c.o: ../src/glad.c
 CMakeFiles/main.dir/src/glad.c.o: CMakeFiles/main.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/main.dir/src/glad.c.o"
-	/usr/bin/gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/main.dir/src/glad.c.o -MF CMakeFiles/main.dir/src/glad.c.o.d -o CMakeFiles/main.dir/src/glad.c.o -c /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/src/glad.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/bruno/Documentos/fcg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/main.dir/src/glad.c.o"
+	/usr/bin/gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/main.dir/src/glad.c.o -MF CMakeFiles/main.dir/src/glad.c.o.d -o CMakeFiles/main.dir/src/glad.c.o -c /home/bruno/Documentos/fcg/src/glad.c
 
 CMakeFiles/main.dir/src/glad.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/main.dir/src/glad.c.i"
-	/usr/bin/gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/src/glad.c > CMakeFiles/main.dir/src/glad.c.i
+	/usr/bin/gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/bruno/Documentos/fcg/src/glad.c > CMakeFiles/main.dir/src/glad.c.i
 
 CMakeFiles/main.dir/src/glad.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/main.dir/src/glad.c.s"
-	/usr/bin/gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/src/glad.c -o CMakeFiles/main.dir/src/glad.c.s
+	/usr/bin/gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/bruno/Documentos/fcg/src/glad.c -o CMakeFiles/main.dir/src/glad.c.s
 
 # Object files for target main
 main_OBJECTS = \
@@ -136,7 +136,7 @@ main_EXTERNAL_OBJECTS =
 ../bin/Linux/main: /usr/lib/x86_64-linux-gnu/libXinerama.so
 ../bin/Linux/main: /usr/lib/x86_64-linux-gnu/libXxf86vm.so
 ../bin/Linux/main: CMakeFiles/main.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable ../bin/Linux/main"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/bruno/Documentos/fcg/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable ../bin/Linux/main"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/main.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -148,6 +148,6 @@ CMakeFiles/main.dir/clean:
 .PHONY : CMakeFiles/main.dir/clean
 
 CMakeFiles/main.dir/depend:
-	cd /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/build /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/build /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/build/CMakeFiles/main.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/bruno/Documentos/fcg/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bruno/Documentos/fcg /home/bruno/Documentos/fcg /home/bruno/Documentos/fcg/build /home/bruno/Documentos/fcg/build /home/bruno/Documentos/fcg/build/CMakeFiles/main.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/main.dir/depend
 

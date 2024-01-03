@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "/home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/bin/Linux/main"
+			"path" : "/home/bruno/Documentos/fcg/bin/Linux/main"
 		}
 	],
 	"backtrace" : 1,
@@ -74,7 +74,7 @@
 			[
 				{
 					"backtrace" : 4,
-					"path" : "/home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/include"
+					"path" : "/home/bruno/Documentos/fcg/include"
 				}
 			],
 			"language" : "CXX",
@@ -111,7 +111,7 @@
 			[
 				{
 					"backtrace" : 4,
-					"path" : "/home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/include"
+					"path" : "/home/bruno/Documentos/fcg/include"
 				}
 			],
 			"language" : "C",

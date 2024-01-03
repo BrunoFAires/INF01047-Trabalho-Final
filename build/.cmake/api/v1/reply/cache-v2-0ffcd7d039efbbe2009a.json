@@ -55,7 +55,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/build"
+			"value" : "/home/bruno/Documentos/fcg/build"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -155,10 +155,10 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "CXX compiler"
+					"value" : "No help, variable specified on the command line."
 				}
 			],
-			"type" : "STRING",
+			"type" : "FILEPATH",
 			"value" : "/usr/bin/g++"
 		},
 		{
@@ -283,10 +283,10 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "C compiler"
+					"value" : "No help, variable specified on the command line."
 				}
 			],
-			"type" : "STRING",
+			"type" : "FILEPATH",
 			"value" : "/usr/bin/gcc"
 		},
 		{
@@ -663,7 +663,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/bruno/Documentos/Laboratorio_3_Codigo_Fonte"
+			"value" : "/home/bruno/Documentos/fcg"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -1307,7 +1307,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/build"
+			"value" : "/home/bruno/Documentos/fcg/build"
 		},
 		{
 			"name" : "LAB_FCG_IS_TOP_LEVEL",
@@ -1331,7 +1331,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/home/bruno/Documentos/Laboratorio_3_Codigo_Fonte"
+			"value" : "/home/bruno/Documentos/fcg"
 		},
 		{
 			"name" : "MATH_LIBRARY",

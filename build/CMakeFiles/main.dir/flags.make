@@ -5,13 +5,13 @@
 # compile CXX with /usr/bin/g++
 C_DEFINES = 
 
-C_INCLUDES = -I/home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/include
+C_INCLUDES = -I/home/bruno/Documentos/fcg/include
 
 C_FLAGS = -g -Wall -Wno-unused-function
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/include
+CXX_INCLUDES = -I/home/bruno/Documentos/fcg/include
 
 CXX_FLAGS = -g -Wall -Wno-unused-function -std=c++11
 
