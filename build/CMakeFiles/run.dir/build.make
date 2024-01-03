@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/bruno/Documentos/fcg
+CMAKE_SOURCE_DIR = /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/bruno/Documentos/fcg/build
+CMAKE_BINARY_DIR = /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/build
 
 # Utility rule file for run.
 
@@ -67,7 +67,7 @@ include CMakeFiles/run.dir/compiler_depend.make
 include CMakeFiles/run.dir/progress.make
 
 CMakeFiles/run: ../bin/Linux/main
-	/usr/bin/cmake -E chdir /home/bruno/Documentos/fcg/bin/Linux ./main
+	/usr/bin/cmake -E chdir /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/bin/Linux ./main
 
 run: CMakeFiles/run
 run: CMakeFiles/run.dir/build.make
@@ -82,6 +82,6 @@ CMakeFiles/run.dir/clean:
 .PHONY : CMakeFiles/run.dir/clean
 
 CMakeFiles/run.dir/depend:
-	cd /home/bruno/Documentos/fcg/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bruno/Documentos/fcg /home/bruno/Documentos/fcg /home/bruno/Documentos/fcg/build /home/bruno/Documentos/fcg/build /home/bruno/Documentos/fcg/build/CMakeFiles/run.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/build /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/build /home/bruno/Documentos/Laboratorio_3_Codigo_Fonte/build/CMakeFiles/run.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/run.dir/depend
 
