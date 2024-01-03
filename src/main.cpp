@@ -19,7 +19,6 @@
 #include <cstdio>
 #include <cstdlib>
 
-// Headers abaixo são específicos de C++
 #include <map>
 #include <stack>
 #include <string>
@@ -121,9 +120,10 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // usuário através do mouse (veja função CursorPosCallback()). A posição
 // efetiva da câmera é calculada dentro da função main(), dentro do loop de
 // renderização.
-float g_CameraTheta = 0.0f;    // Ângulo no plano ZX em relação ao eixo Z
-float g_CameraPhi = 0.0f;      // Ângulo em relação ao eixo Y
-float g_CameraDistance = 3.5f; // Distância da câmera para a origem
+float g_CameraTheta = 0.0f;                       // Ângulo no plano ZX em relação ao eixo Z
+float g_CameraPhi = 0.0f;                         // Ângulo em relação ao eixo Y
+float g_CameraDistance = 30.5f;                   // Distância da câmera para a origem
+float g_CurrentCameraDistance = g_CameraDistance; // Distância da câmera para a origem
 
 // Variáveis que controlam rotação do antebraço
 float g_ForearmAngleZ = 0.0f;
@@ -141,6 +141,10 @@ bool g_ShowInfoText = true;
 
 // Variáveis que definem um programa de GPU (shaders). Veja função LoadShadersFromFiles().
 GLuint g_GpuProgramID = 0;
+
+float wallDepth = 1.0f;
+float wallWidth = 20.0f;
+float wallHeight = 5.0f;
 
 int main()
 {
@@ -267,17 +271,17 @@ int main()
         // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
         // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
         // e ScrollCallback().
-        float r = g_CameraDistance;
-        float y = r * sin(g_CameraPhi);
-        float z = r * cos(g_CameraPhi) * cos(g_CameraTheta);
-        float x = r * cos(g_CameraPhi) * sin(g_CameraTheta);
+        float r = g_CurrentCameraDistance;
+        float y = r * sin(15.0f);
+        float z = r * cos(g_CameraTheta);
+        float x = r * sin(g_CameraTheta);
 
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        glm::vec4 camera_position_c = glm::vec4(x, y, z, 1.0f);             // Ponto "c", centro da câmera
-        glm::vec4 camera_lookat_l = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);      // Ponto "l", para onde a câmera (look-at) estará sempre olhando
-        glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
-        glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);     // Vetor "up" fixado para apontar para o "céu" (eito Y global)
+        glm::vec4 camera_position_c = glm::vec4(x, y, z, 1.0f);                 // Ponto "c", centro da câmera
+        glm::vec4 camera_lookat_l = glm::vec4(0.0f, 0.0f, wallWidth / 2, 1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
+        glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c;     // Vetor "view", sentido para onde a câmera está virada
+        glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);         // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
@@ -288,8 +292,8 @@ int main()
 
         // Note que, no sistema de coordenadas da câmera, os planos near e far
         // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
-        float nearplane = -0.1f; // Posição do "near plane"
-        float farplane = -10.0f; // Posição do "far plane"
+        float nearplane = -0.1f;  // Posição do "near plane"
+        float farplane = -100.0f; // Posição do "far plane"
 
         if (g_UsePerspectiveProjection)
         {
@@ -305,7 +309,7 @@ int main()
             // PARA PROJEÇÃO ORTOGRÁFICA veja slides 219-224 do documento Aula_09_Projecoes.pdf.
             // Para simular um "zoom" ortográfico, computamos o valor de "t"
             // utilizando a variável g_CameraDistance.
-            float t = 1.5f * g_CameraDistance / 2.5f;
+            float t = 1.5f * g_CurrentCameraDistance / 2.5f;
             float b = -t;
             float r = t * g_ScreenRatio;
             float l = -r;
@@ -331,147 +335,70 @@ int main()
         // transladar o torso, a cabeça deve se movimentar junto.
         // Veja slides 243-273 do documento Aula_08_Sistemas_de_Coordenadas.pdf
         //
+
         glm::mat4 model = Matrix_Identity(); // Transformação inicial = identidade.
+        int wallControll = 0;
+        /*         for (int i = 0; i <= 2; i++)
+                {
+                    if (i % 2 != 0)
+                    {
+                        wallControll = 1;
+                    }
+                    else
+                    {
+                        wallControll = 0;
+                    }
 
-        // Translação inicial do torso
-        model = model * Matrix_Translate(g_TorsoPositionX - 1.0f, g_TorsoPositionY + 1.0f, 0.0f);
-        // Guardamos matriz model atual na pilha
+                    model = model * Matrix_Translate(wallControll * (wallWidth / 2 - 0.5f), 0.0f, wallControll * (wallWidth / 2) - 0.5f);
+                    model = model                                                    // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
+                            * Matrix_Rotate_Z(0.0f)                                  // TERCEIRO rotação Z de Euler
+                            * Matrix_Rotate_Y(wallControll * ((M_PI) / 180 * 90.0f)) // SEGUNDO rotação Y de Euler
+                            * Matrix_Rotate_X(0.0f);
+                    PushMatrix(model);
+                    model = model * Matrix_Scale(wallWidth, wallHeight, wallDepth);
+                    glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+                    DrawCube(render_as_black_uniform);
+                    PopMatrix(model);
+                } */
+
+        model = model * Matrix_Translate(0.0f, 0.0f, 0.0f);
         PushMatrix(model);
-        // Atualizamos a matriz model (multiplicação à direita) para fazer um escalamento do torso
-        model = model * Matrix_Scale(0.8f, 1.0f, 0.2f);
-        // Enviamos a matriz "model" para a placa de vídeo (GPU). Veja o
-        // arquivo "shader_vertex.glsl", onde esta é efetivamente
-        // aplicada em todos os pontos.
+        model = model * Matrix_Scale(wallWidth, wallHeight, wallDepth);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        // Desenhamos um cubo. Esta renderização irá executar o Vertex
-        // Shader definido no arquivo "shader_vertex.glsl", e o mesmo irá
-        // utilizar as matrizes "model", "view" e "projection" definidas
-        // acima e já enviadas para a placa de vídeo (GPU).
-        DrawCube(render_as_black_uniform); // #### TORSO
-        // Tiramos da pilha a matriz model guardada anteriormente
+        DrawCube(render_as_black_uniform);
         PopMatrix(model);
-
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Translate(-0.55f, 0.0f, 0.0f);                  // Atualizamos matriz model (multiplicação à direita) com uma translação para o braço direito
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model                                                          // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
-                * Matrix_Rotate_Z(g_AngleZ)                                    // TERCEIRO rotação Z de Euler
-                * Matrix_Rotate_Y(g_AngleY)                                    // SEGUNDO rotação Y de Euler
-                * Matrix_Rotate_X(g_AngleX);                                   // PRIMEIRO rotação X de Euler
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Scale(0.2f, 0.6f, 0.2f);                        // Atualizamos matriz model (multiplicação à direita) com um escalamento do braço direito
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model)); // Enviamos matriz model atual para a GPU
-        DrawCube(render_as_black_uniform);                                     // #### BRAÇO DIREITO // Desenhamos o braço direito
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Translate(0.0f, -0.65f, 0.0f);                  // Atualizamos matriz model (multiplicação à direita) com a translação do antebraço direito
-        model = model                                                          // Atualizamos matriz model (multiplicação à direita) com a rotação do antebraço direito
-                * Matrix_Rotate_Z(g_ForearmAngleZ)                             // SEGUNDO rotação Z de Euler
-                * Matrix_Rotate_X(g_ForearmAngleX);                            // PRIMEIRO rotação X de Euler
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Scale(0.2f, 0.6f, 0.2f);                        // Atualizamos matriz model (multiplicação à direita) com um escalamento do antebraço direito
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model)); // Enviamos matriz model atual para a GPU
-        DrawCube(render_as_black_uniform);                                     // #### ANTEBRAÇO DIREITO // Desenhamos o antebraço direito
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
-
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Translate(0.55f, 0.0f, 0.0f);                   // Atualizamos matriz model (multiplicação à direita) com uma translação para o braço direito
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model                                                          // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
-                * Matrix_Rotate_Z(g_AngleZ)                                    // TERCEIRO rotação Z de Euler
-                * Matrix_Rotate_Y(g_AngleY)                                    // SEGUNDO rotação Y de Euler
-                * Matrix_Rotate_X(g_AngleX);                                   // PRIMEIRO rotação X de Euler
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Scale(0.2f, 0.6f, 0.2f);                        // Atualizamos matriz model (multiplicação à direita) com um escalamento do braço direito
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model)); // Enviamos matriz model atual para a GPU
-        DrawCube(render_as_black_uniform);                                     // #### BRAÇO DIREITO // Desenhamos o braço direito
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Translate(0.0f, -0.65f, 0.0f);                  // Atualizamos matriz model (multiplicação à direita) com a translação do antebraço direito
-        model = model                                                          // Atualizamos matriz model (multiplicação à direita) com a rotação do antebraço direito
-                * Matrix_Rotate_Z(g_ForearmAngleZ)                             // SEGUNDO rotação Z de Euler
-                * Matrix_Rotate_X(g_ForearmAngleX);                            // PRIMEIRO rotação X de Euler
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Scale(0.2f, 0.6f, 0.2f);                        // Atualizamos matriz model (multiplicação à direita) com um escalamento do antebraço direito
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model)); // Enviamos matriz model atual para a GPU
-        DrawCube(render_as_black_uniform);                                     // #### ANTEBRAÇO DIREITO // Desenhamos o antebraço direito
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
+        PushMatrix(model);
+        model = model * Matrix_Translate(-(wallWidth / 2) + (wallDepth / 2), 0.0f, 10.5f);
+        model = model                                   // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
+                * Matrix_Rotate_Z(0.0f)                 // TERCEIRO rotação Z de Euler
+                * Matrix_Rotate_Y((M_PI) / 180 * 90.0f) // SEGUNDO rotação Y de Euler
+                * Matrix_Rotate_X(0.0f);
+        PushMatrix(model);
+        model = model * Matrix_Scale(wallWidth, wallHeight, wallDepth);
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        DrawCube(render_as_black_uniform);
         PopMatrix(model);
-
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Translate(-0.2f, -1.055f, 0.0f);                // Atualizamos matriz model (multiplicação à direita) com uma translação para o braço direito
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha                             // PRIMEIRO rotação X de Euler
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Scale(0.3f, 0.6f, 0.2f);                        // Atualizamos matriz model (multiplicação à direita) com um escalamento do braço direito
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model)); // Enviamos matriz model atual para a GPU
-        DrawCube(render_as_black_uniform);                                     // #### BRAÇO DIREITO // Desenhamos o braço direito
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Translate(0.0f, -0.65f, 0.0f);                  // Atualizamos matriz model (multiplicação à direita) com a translação do antebraço direito
-
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Scale(0.2f, 0.6f, 0.2f);                        // Atualizamos matriz model (multiplicação à direita) com um escalamento do antebraço direito
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model)); // Enviamos matriz model atual para a GPU
-        DrawCube(render_as_black_uniform);                                     // #### ANTEBRAÇO DIREITO // Desenhamos o antebraço direito
+        PushMatrix(model);
+        model = model * Matrix_Translate(-(wallWidth / 2) + (wallDepth / 2), 0.0f, 10.5f);
+        model = model                                   // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
+                * Matrix_Rotate_Z(0.0f)                 // TERCEIRO rotação Z de Euler
+                * Matrix_Rotate_Y((M_PI) / 180 * 90.0f) // SEGUNDO rotação Y de Euler
+                * Matrix_Rotate_X(0.0f);
+        PushMatrix(model);
+        model = model * Matrix_Scale(wallWidth, wallHeight, wallDepth);
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        DrawCube(render_as_black_uniform);
         PopMatrix(model);
-        PushMatrix(model);                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Translate(0.0f, -0.65f, 0.15f); // Atualizamos matriz model (multiplicação à direita) com a translação do antebraço direito
-
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Scale(0.2f, 0.2f, 0.5f);                        // Atualizamos matriz model (multiplicação à direita) com um escalamento do antebraço direito
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model)); // Enviamos matriz model atual para a GPU
-        DrawCube(render_as_black_uniform);                                     // #### ANTEBRAÇO DIREITO // Desenhamos o antebraço direito
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
-                                                                               // Tiramos da pilha a matriz model guardada anteriormente
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
-        PopMatrix(model);
-
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Translate(0.2f, -1.055f, 0.0f);                 // Atualizamos matriz model (multiplicação à direita) com uma translação para o braço direito
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha                                   // PRIMEIRO rotação X de Euler
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Scale(0.3f, 0.6f, 0.2f);                        // Atualizamos matriz model (multiplicação à direita) com um escalamento do braço direito
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model)); // Enviamos matriz model atual para a GPU
-        DrawCube(render_as_black_uniform);                                     // #### BRAÇO DIREITO // Desenhamos o braço direito
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Translate(0.0f, -0.65f, 0.0f);                  // Atualizamos matriz model (multiplicação à direita) com a translação do antebraço direito
-
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Scale(0.2f, 0.6f, 0.2f);                        // Atualizamos matriz model (multiplicação à direita) com um escalamento do antebraço direito
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model)); // Enviamos matriz model atual para a GPU
-        DrawCube(render_as_black_uniform);                                     // #### ANTEBRAÇO DIREITO // Desenhamos o antebraço direito
-        PopMatrix(model);
-        PushMatrix(model);                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Translate(0.0f, -0.65f, 0.15f); // Atualizamos matriz model (multiplicação à direita) com a translação do antebraço direito
-
-        PushMatrix(model);                                                     // Guardamos matriz model atual na pilha
-        model = model * Matrix_Scale(0.2f, 0.2f, 0.5f);                        // Atualizamos matriz model (multiplicação à direita) com um escalamento do antebraço direito
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model)); // Enviamos matriz model atual para a GPU
-        DrawCube(render_as_black_uniform);                                     // #### ANTEBRAÇO DIREITO // Desenhamos o antebraço direito
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
-                                                                               // Tiramos da pilha a matriz model guardada anteriormente
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
-        PopMatrix(model);                                                      // Tiramos da pilha a matriz model guardada anteriormente
-        PopMatrix(model);
-
-        PushMatrix(model);                                   // Guardamos matriz model atual na pilha
-        model = model * Matrix_Translate(0.0f, 0.45f, 0.0f); // Atualizamos matriz model (multiplicação à direita) com uma translação para o braço direito
-        model = model * Matrix_Scale(0.4f, 0.4f, 0.2f);
-        model = model                                                          // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
-                * Matrix_Rotate_Z(g_AngleZ)                                    // TERCEIRO rotação Z de Euler
-                * Matrix_Rotate_Y(g_AngleY)                                    // SEGUNDO rotação Y de Euler
-                * Matrix_Rotate_X(g_AngleX);                                   // Atualizamos matriz model (multiplicação à direita) com um escalamento do antebraço direito
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model)); // Enviamos matriz model atual para a GPU
-        DrawCube(render_as_black_uniform);                                     // #### ANTEBRAÇO DIREITO // Desenhamos o antebraço direito
+        PushMatrix(model);
+        model = model * Matrix_Translate(-(wallWidth / 2) + (wallDepth / 2), 0.0f, 10.5f);
+        model = model                                   // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
+                * Matrix_Rotate_Z(0.0f)                 // TERCEIRO rotação Z de Euler
+                * Matrix_Rotate_Y((M_PI) / 180 * 90.0f) // SEGUNDO rotação Y de Euler
+                * Matrix_Rotate_X(0.0f);
+        PushMatrix(model);
+        model = model * Matrix_Scale(wallWidth, wallHeight, wallDepth);
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+        DrawCube(render_as_black_uniform);
         PopMatrix(model);
 
         // Neste ponto a matriz model recuperada é a matriz inicial (translação do torso)
@@ -1204,16 +1131,23 @@ void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
 {
     // Atualizamos a distância da câmera para a origem utilizando a
     // movimentação da "rodinha", simulando um ZOOM.
-    g_CameraDistance -= 0.1f * yoffset;
+    if (g_CurrentCameraDistance > 20 && yoffset > 0)
+    {
+
+        g_CurrentCameraDistance -= 5.0f * yoffset;
+    }
+
+    if (g_CurrentCameraDistance < 40 && yoffset < 0)
+    {
+
+        g_CurrentCameraDistance -= 5.0f * yoffset;
+    }
 
     // Uma câmera look-at nunca pode estar exatamente "em cima" do ponto para
     // onde ela está olhando, pois isto gera problemas de divisão por zero na
     // definição do sistema de coordenadas da câmera. Isto é, a variável abaixo
     // nunca pode ser zero. Versões anteriores deste código possuíam este bug,
     // o qual foi detectado pelo aluno Vinicius Fraga (2017/2).
-    const float verysmallnumber = std::numeric_limits<float>::epsilon();
-    if (g_CameraDistance < verysmallnumber)
-        g_CameraDistance = verysmallnumber;
 }
 
 // Definição da função que será chamada sempre que o usuário pressionar alguma
