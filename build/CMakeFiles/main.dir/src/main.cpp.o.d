@@ -358,4 +358,7 @@ CMakeFiles/main.dir/src/main.cpp.o: \
  /usr/include/c++/11/cstring /usr/include/string.h /usr/include/strings.h \
  /home/bruno/Documentos/fcg/include/glm/gtc/type_ptr.inl \
  /home/bruno/Documentos/fcg/include/utils.h \
- /home/bruno/Documentos/fcg/include/matrices.h
+ /home/bruno/Documentos/fcg/include/matrices.h /usr/include/c++/11/vector \
+ /usr/include/c++/11/bits/stl_vector.h \
+ /usr/include/c++/11/bits/stl_bvector.h \
+ /usr/include/c++/11/bits/vector.tcc

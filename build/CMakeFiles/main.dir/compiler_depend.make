@@ -473,7 +473,11 @@ CMakeFiles/main.dir/src/main.cpp.o: ../src/main.cpp \
   /usr/include/strings.h \
   ../include/glm/gtc/type_ptr.inl \
   ../include/utils.h \
-  ../include/matrices.h
+  ../include/matrices.h \
+  /usr/include/c++/11/vector \
+  /usr/include/c++/11/bits/stl_vector.h \
+  /usr/include/c++/11/bits/stl_bvector.h \
+  /usr/include/c++/11/bits/vector.tcc
 
 CMakeFiles/main.dir/src/textrendering.cpp.o: ../src/textrendering.cpp \
   /usr/include/stdc-predef.h \
@@ -772,6 +776,10 @@ CMakeFiles/main.dir/src/textrendering.cpp.o: ../src/textrendering.cpp \
   ../include/dejavufont.h
 
 
+/usr/include/c++/11/bits/vector.tcc:
+
+/usr/include/c++/11/vector:
+
 ../include/glm/ext/vector_uint1_precision.hpp:
 
 ../include/glm/ext/vector_uint1.hpp:
@@ -1057,6 +1065,8 @@ CMakeFiles/main.dir/src/textrendering.cpp.o: ../src/textrendering.cpp \
 /usr/include/x86_64-linux-gnu/bits/mathcalls-helper-functions.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/error_t.h:
+
+/usr/include/c++/11/bits/stl_vector.h:
 
 /usr/include/c++/11/cstddef:
 
@@ -1389,6 +1399,8 @@ CMakeFiles/main.dir/src/textrendering.cpp.o: ../src/textrendering.cpp \
 /usr/include/x86_64-linux-gnu/bits/setjmp.h:
 
 /usr/include/time.h:
+
+/usr/include/c++/11/bits/stl_bvector.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/clockid_t.h:
 

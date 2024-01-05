@@ -38,6 +38,7 @@
 // Headers locais, definidos na pasta "include/"
 #include "utils.h"
 #include "matrices.h"
+#include <vector>
 
 // Declaração de funções utilizadas para pilha de matrizes de modelagem.
 void PushMatrix(glm::mat4 M);
@@ -89,6 +90,12 @@ struct SceneObject
     void *first_index;     // Índice do primeiro vértice dentro do vetor indices[] definido em BuildTriangles()
     int num_indices;       // Número de índices do objeto dentro do vetor indices[] definido em BuildTriangles()
     GLenum rendering_mode; // Modo de rasterização (GL_TRIANGLES, GL_TRIANGLE_STRIP, etc.)
+};
+
+struct Wall
+{
+    float width, height, depth, x, y, z;
+    int rotation;
 };
 
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
@@ -145,6 +152,33 @@ GLuint g_GpuProgramID = 0;
 float wallDepth = 1.0f;
 float wallWidth = 20.0f;
 float wallHeight = 5.0f;
+
+std::vector<Wall> walls = {
+    {.width = 20, .height = 5, .depth = 1, .x = 0, .y = 0, .z = 0, .rotation = 0},
+    {.width = 8, .height = 5, .depth = 1, .x = 1, .y = 0, .z = 1, .rotation = 90},
+    {.width = 12, .height = 5, .depth = 1, .x = 1, .y = 0, .z = -1, .rotation = 90},
+    {.width = 8, .height = 5, .depth = 1, .x = -1, .y = 0, .z = -1, .rotation = 90},
+    {.width = 8, .height = 5, .depth = 1, .x = -1, .y = 0, .z = 1, .rotation = 90},
+    {.width = 8, .height = 5, .depth = 1, .x = 1, .y = 0, .z = 1, .rotation = 90},
+    {.width = 20, .height = 5, .depth = 1, .x = 1, .y = 0, .z = 1, .rotation = 270},
+    {.width = 8, .height = 5, .depth = 1, .x = -1, .y = 0, .z = 1, .rotation = 270},
+    {.width = 24, .height = 5, .depth = 1, .x = -1, .y = 0, .z = -1, .rotation = 270},
+    {.width = 8, .height = 5, .depth = 1, .x = 1, .y = 0, .z = 1, .rotation = 90},
+    {.width = 32, .height = 5, .depth = 1, .x = -0.1, .y = 0, .z = -1.03, .rotation = 90},
+    {.width = 16, .height = 5, .depth = 1, .x = -1, .y = 0, .z = -1, .rotation = 90},
+    {.width = 20, .height = 5, .depth = 1, .x = -1, .y = 0, .z = -1, .rotation = 270},
+    {.width = 4, .height = 5, .depth = 1, .x = 1, .y = 0, .z = 1, .rotation = 90},
+    {.width = 16, .height = 5, .depth = 1, .x = 1, .y = 0, .z = -1, .rotation = 90},
+    {.width = 12, .height = 5, .depth = 1, .x = -1, .y = 0, .z = 1, .rotation = 270},
+    {.width = 4, .height = 5, .depth = 1, .x = -1, .y = 0, .z = -1, .rotation = 270},
+    {.width = 6, .height = 5, .depth = 1, .x = 1, .y = 0, .z = -1, .rotation = 270},
+};
+
+bool wasdControlKey = false;
+bool isWPressed = false;
+bool isAPressed = false;
+bool isSPressed = false;
+bool isDPress = false;
 
 int main()
 {
@@ -240,6 +274,9 @@ int main()
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
+    glm::vec4 cameraPosition;
+    glm::vec4 cameraAux;
+    glm::vec4 camera;
 
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
@@ -271,10 +308,54 @@ int main()
         // variáveis g_CameraDistance, g_CameraPhi, e g_CameraTheta são
         // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
         // e ScrollCallback().
-        float r = g_CurrentCameraDistance;
+
+        /* float r = g_CurrentCameraDistance;
         float y = r * sin(15.0f);
         float z = r * cos(g_CameraTheta);
-        float x = r * sin(g_CameraTheta);
+        float x = r * sin(g_CameraTheta); */
+
+        float r = g_CameraDistance;
+        float y = r * sin(g_CameraPhi);
+        float z = r * cos(g_CameraPhi) * cos(g_CameraTheta);
+        float x = r * cos(g_CameraPhi) * sin(g_CameraTheta);
+        glm::vec4 camera = glm::vec4(-x, -y, -z, 0.0f);
+        if (!wasdControlKey)
+        {
+            cameraPosition = glm::vec4(x, y, z, 1.0f); //
+        }
+
+        if (isWPressed)
+        {
+            cameraPosition.x += 0.02 * camera.x;
+            cameraPosition.y += 0.02 * camera.y;
+            cameraPosition.z += 0.02 * camera.z;
+            wasdControlKey = true;
+        }
+        if (isAPressed)
+        {
+            cameraAux = Matrix_Rotate_Y(1.5708) * camera;
+            cameraPosition.x += 0.02 * cameraAux.x;
+            cameraPosition.z += 0.02 * cameraAux.z;
+
+            wasdControlKey = true;
+        }
+
+        if (isSPressed)
+        {
+            cameraPosition.x -= 0.02 * camera.x;
+            cameraPosition.y -= 0.02 * camera.y;
+            cameraPosition.z -= 0.02 * camera.z;
+
+            wasdControlKey = true;
+        }
+        if (isDPress)
+        {
+            cameraAux = Matrix_Rotate_Y(1.5708) * camera;
+            cameraPosition.x -= 0.02 * cameraAux.x;
+            cameraPosition.z -= 0.02 * cameraAux.z;
+
+            wasdControlKey = true;
+        }
 
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
@@ -285,7 +366,7 @@ int main()
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, camera_up_vector);
+        glm::mat4 view = Matrix_Camera_View(cameraPosition, camera, camera_up_vector);
 
         // Agora computamos a matriz de Projeção.
         glm::mat4 projection;
@@ -338,6 +419,39 @@ int main()
 
         glm::mat4 model = Matrix_Identity(); // Transformação inicial = identidade.
         int wallControll = 0;
+
+        for (int i = 0; i < walls.size(); i++)
+        {
+            Wall wall = walls[i];
+            int control = 90 - wall.rotation;
+
+            if (control != 0)
+            {
+                control = -1;
+            }
+            else
+            {
+                control = 1;
+            }
+
+            if (i % 2 == 1)
+            {
+                model = model * Matrix_Translate((-(walls[i - 1].width / 2) + (walls[i - 1].depth / 2)) * wall.x, 1.0f * wall.y, wall.z * (walls[i].width / 2) + (0.5f * wall.x * control));
+            }
+            else if (i != 0)
+            {
+                model = model * Matrix_Translate((-(walls[i - 1].width / 2) + (walls[i - 1].depth / 2)) * wall.x - 1 * (wall.x), 0.0f, wall.z * (wall.width / 2) + (0.5f * wall.x * control));
+            }
+            model = model                                           // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
+                    * Matrix_Rotate_Z(0.0f)                         // TERCEIRO rotação Z de Euler
+                    * Matrix_Rotate_Y((M_PI) / 180 * wall.rotation) // SEGUNDO rotação Y de Euler
+                    * Matrix_Rotate_X(0.0f);
+            PushMatrix(model);
+            model = model * Matrix_Scale(wall.width, wall.height, wall.depth);
+            glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            DrawCube(render_as_black_uniform);
+            PopMatrix(model);
+        }
         /*         for (int i = 0; i <= 2; i++)
                 {
                     if (i % 2 != 0)
@@ -361,7 +475,7 @@ int main()
                     PopMatrix(model);
                 } */
 
-        model = model * Matrix_Translate(0.0f, 0.0f, 0.0f);
+        /* model = model * Matrix_Translate(0.0f, 0.0f, 0.0f);
         PushMatrix(model);
         model = model * Matrix_Scale(wallWidth, wallHeight, wallDepth);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
@@ -399,7 +513,7 @@ int main()
         model = model * Matrix_Scale(wallWidth, wallHeight, wallDepth);
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
         DrawCube(render_as_black_uniform);
-        PopMatrix(model);
+        PopMatrix(model); */
 
         // Neste ponto a matriz model recuperada é a matriz inicial (translação do torso)
 
@@ -1218,6 +1332,45 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_H && action == GLFW_PRESS)
     {
         g_ShowInfoText = !g_ShowInfoText;
+    }
+    if (key == GLFW_KEY_W && action == GLFW_PRESS)
+    {
+        isWPressed = true;
+    }
+
+    if (key == GLFW_KEY_W && action == GLFW_RELEASE)
+    {
+        isWPressed = false;
+    }
+
+    if (key == GLFW_KEY_A && action == GLFW_PRESS)
+    {
+        isAPressed = true;
+    }
+
+    if (key == GLFW_KEY_A && action == GLFW_RELEASE)
+    {
+        isAPressed = false;
+    }
+
+    if (key == GLFW_KEY_S && action == GLFW_PRESS)
+    {
+        isSPressed = true;
+    }
+
+    if (key == GLFW_KEY_S && action == GLFW_RELEASE)
+    {
+        isSPressed = false;
+    }
+
+    if (key == GLFW_KEY_D && action == GLFW_PRESS)
+    {
+        isDPress = true;
+    }
+
+    if (key == GLFW_KEY_D && action == GLFW_RELEASE)
+    {
+        isDPress = false;
     }
 }
 
