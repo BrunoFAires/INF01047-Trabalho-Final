@@ -170,8 +170,7 @@ CMakeFiles/main.dir/src/main.cpp.o: \
  /usr/include/c++/11/bits/istream.tcc /usr/include/c++/11/bits/codecvt.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
- /usr/include/c++/11/bits/fstream.tcc /usr/include/c++/11/sstream \
- /usr/include/c++/11/bits/sstream.tcc \
+ /usr/include/c++/11/bits/fstream.tcc \
  /home/bruno/Documentos/fcg/include/glad/glad.h \
  /home/bruno/Documentos/fcg/include/KHR/khrplatform.h \
  /usr/include/inttypes.h /home/bruno/Documentos/fcg/include/GLFW/glfw3.h \
@@ -358,7 +357,10 @@ CMakeFiles/main.dir/src/main.cpp.o: \
  /usr/include/c++/11/cstring /usr/include/string.h /usr/include/strings.h \
  /home/bruno/Documentos/fcg/include/glm/gtc/type_ptr.inl \
  /home/bruno/Documentos/fcg/include/utils.h \
- /home/bruno/Documentos/fcg/include/matrices.h /usr/include/c++/11/vector \
- /usr/include/c++/11/bits/stl_vector.h \
+ /home/bruno/Documentos/fcg/include/matrices.h \
+ /home/bruno/Documentos/fcg/include/shaders.h \
+ /home/bruno/Documentos/fcg/include/../include/glad/glad.h \
+ /usr/include/c++/11/sstream /usr/include/c++/11/bits/sstream.tcc \
+ /usr/include/c++/11/vector /usr/include/c++/11/bits/stl_vector.h \
  /usr/include/c++/11/bits/stl_bvector.h \
  /usr/include/c++/11/bits/vector.tcc

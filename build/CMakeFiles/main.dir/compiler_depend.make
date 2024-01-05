@@ -280,8 +280,6 @@ CMakeFiles/main.dir/src/main.cpp.o: ../src/main.cpp \
   /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
   /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
   /usr/include/c++/11/bits/fstream.tcc \
-  /usr/include/c++/11/sstream \
-  /usr/include/c++/11/bits/sstream.tcc \
   ../include/glad/glad.h \
   ../include/KHR/khrplatform.h \
   /usr/include/inttypes.h \
@@ -474,6 +472,10 @@ CMakeFiles/main.dir/src/main.cpp.o: ../src/main.cpp \
   ../include/glm/gtc/type_ptr.inl \
   ../include/utils.h \
   ../include/matrices.h \
+  ../include/shaders.h \
+  ../include/glad/glad.h \
+  /usr/include/c++/11/sstream \
+  /usr/include/c++/11/bits/sstream.tcc \
   /usr/include/c++/11/vector \
   /usr/include/c++/11/bits/stl_vector.h \
   /usr/include/c++/11/bits/stl_bvector.h \
@@ -780,6 +782,10 @@ CMakeFiles/main.dir/src/textrendering.cpp.o: ../src/textrendering.cpp \
 
 /usr/include/c++/11/vector:
 
+/usr/include/c++/11/sstream:
+
+../include/shaders.h:
+
 ../include/glm/ext/vector_uint1_precision.hpp:
 
 ../include/glm/ext/vector_uint1.hpp:
@@ -942,8 +948,6 @@ CMakeFiles/main.dir/src/textrendering.cpp.o: ../src/textrendering.cpp \
 
 ../include/glm/ext/vector_uint3.hpp:
 
-../include/glm/ext/vector_double3.hpp:
-
 /usr/include/c++/11/bits/stl_multimap.h:
 
 ../include/glm/detail/compute_common.hpp:
@@ -967,6 +971,10 @@ CMakeFiles/main.dir/src/textrendering.cpp.o: ../src/textrendering.cpp \
 /usr/include/c++/11/bits/stringfwd.h:
 
 /usr/include/x86_64-linux-gnu/c++/11/bits/c++allocator.h:
+
+/usr/include/c++/11/bits/sstream.tcc:
+
+/usr/include/c++/11/new:
 
 ../include/glm/ext/vector_uint4.hpp:
 
@@ -1128,19 +1136,19 @@ CMakeFiles/main.dir/src/textrendering.cpp.o: ../src/textrendering.cpp \
 
 /usr/include/x86_64-linux-gnu/bits/waitflags.h:
 
-../include/glm/gtc/quaternion.hpp:
-
-../include/glm/ext/vector_double3_precision.hpp:
-
-/usr/include/c++/11/bits/predefined_ops.h:
-
-/usr/include/x86_64-linux-gnu/bits/typesizes.h:
-
 /usr/include/x86_64-linux-gnu/bits/endianness.h:
 
 /usr/include/c++/11/debug/assertions.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/11/include/stdarg.h:
+
+../include/glm/gtc/quaternion.hpp:
+
+/usr/include/c++/11/bits/predefined_ops.h:
+
+/usr/include/x86_64-linux-gnu/bits/typesizes.h:
+
+../include/glm/ext/vector_double3_precision.hpp:
 
 /usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
 
@@ -1149,6 +1157,8 @@ CMakeFiles/main.dir/src/textrendering.cpp.o: ../src/textrendering.cpp \
 ../include/glm/ext/matrix_float3x2_precision.hpp:
 
 /usr/include/x86_64-linux-gnu/bits/thread-shared-types.h:
+
+../include/glm/ext/vector_double3.hpp:
 
 ../include/glm/ext/matrix_double2x3.hpp:
 
@@ -1185,10 +1195,6 @@ CMakeFiles/main.dir/src/textrendering.cpp.o: ../src/textrendering.cpp \
 /usr/include/strings.h:
 
 /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h:
-
-/usr/include/c++/11/new:
-
-/usr/include/c++/11/bits/sstream.tcc:
 
 /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h:
 
@@ -1518,10 +1524,6 @@ CMakeFiles/main.dir/src/textrendering.cpp.o: ../src/textrendering.cpp \
 
 /usr/include/c++/11/bits/fstream.tcc:
 
-/usr/include/c++/11/sstream:
-
-../include/glm/detail/type_vec3.inl:
-
 /usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h:
 
 ../include/GLFW/glfw3.h:
@@ -1587,3 +1589,5 @@ CMakeFiles/main.dir/src/textrendering.cpp.o: ../src/textrendering.cpp \
 ../include/glm/mat3x3.hpp:
 
 ../include/glm/detail/type_vec3.hpp:
+
+../include/glm/detail/type_vec3.inl:
