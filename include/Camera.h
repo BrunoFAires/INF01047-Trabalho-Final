@@ -7,10 +7,10 @@ private:
     float g_CameraPhi = 0.0f;                         // Ângulo em relação ao eixo Y
     float g_CameraDistance = 30.5f;                   // Distância da câmera para a origem
     float g_CurrentCameraDistance = g_CameraDistance; // Distância da câmera para a origem
-    glm::vec4 positionVector = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    glm::vec4 positionVector = glm::vec4(16.5f, -2.0f, 30.5f, 1.0f);
     glm::vec4 viewVector = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
     glm::vec4 upVector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
-    float velocity = 0.05;
+    float velocity = 0.02;
 
 public:
     Camera(float theta, float phi, float distance);
@@ -31,6 +31,7 @@ public:
     void moveRight();
     void updateView();
     void updatePosition();
+    void restart();
 };
 
 Camera::Camera(float theta, float phi, float distance)
@@ -39,7 +40,6 @@ Camera::Camera(float theta, float phi, float distance)
     g_CameraPhi = phi;
     g_CameraDistance = distance;
     updateView();
-    updatePosition();
 }
 
 float Camera::getCameraTheta()
@@ -123,7 +123,7 @@ void Camera::moveRight()
 void Camera::updatePosition()
 {
     positionVector.x = -viewVector.x;
-    positionVector.y = -viewVector.y;
+    positionVector.y = -2;
     positionVector.z = -viewVector.z;
 }
 
@@ -137,4 +137,15 @@ void Camera::updateView()
     viewVector.x = -x;
     viewVector.y = -y;
     viewVector.z = -z;
+}
+
+void Camera::restart()
+{
+    g_CameraTheta = 0.0f;
+    g_CameraPhi = 0.0f;
+    g_CameraDistance = 30.5f;
+
+    positionVector.x = 16.5f;
+    positionVector.z = 30.5f;
+    updateView();
 }

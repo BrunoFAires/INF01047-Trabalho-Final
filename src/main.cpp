@@ -123,7 +123,7 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // usuário através do mouse (veja função CursorPosCallback()). A posição
 // efetiva da câmera é calculada dentro da função main(), dentro do loop de
 // renderização.
-Camera camera(0.0f, 0.0f, 30.5f);
+Camera camera(0.0f, 0.0f, 10.5f);
 // Variáveis que controlam rotação do antebraço
 float g_ForearmAngleZ = 0.0f;
 float g_ForearmAngleX = 0.0f;
@@ -166,11 +166,11 @@ std::vector<Wall> walls = {
     {.width = 6, .height = 5, .depth = 1, .x = 1, .y = 0, .z = -1, .rotation = 270},
 };
 
-bool wasdControlKey = false;
 bool isWPressed = false;
 bool isAPressed = false;
 bool isSPressed = false;
-bool isDPress = false;
+bool isDPressed = false;
+bool isRPressed = false;
 
 int main()
 {
@@ -304,31 +304,27 @@ int main()
         float x = r * sin(g_CameraTheta); */
         camera.updateView();
 
-        if (!wasdControlKey)
-        {
-            camera.updatePosition();
-        }
-
         if (isWPressed)
         {
             camera.moveForward();
-            wasdControlKey = true;
         }
         if (isAPressed)
         {
             camera.moveLeft();
-            wasdControlKey = true;
         }
 
         if (isSPressed)
         {
             camera.moveBackwar();
-            wasdControlKey = true;
         }
-        if (isDPress)
+        if (isDPressed)
         {
             camera.moveRight();
-            wasdControlKey = true;
+        }
+
+        if (isRPressed)
+        {
+            camera.restart();
         }
 
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
@@ -392,7 +388,6 @@ int main()
         //
 
         glm::mat4 model = Matrix_Identity(); // Transformação inicial = identidade.
-        int wallControll = 0;
 
         for (int i = 0; i < walls.size(); i++)
         {
@@ -426,68 +421,6 @@ int main()
             DrawCube(render_as_black_uniform);
             PopMatrix(model);
         }
-        /*         for (int i = 0; i <= 2; i++)
-                {
-                    if (i % 2 != 0)
-                    {
-                        wallControll = 1;
-                    }
-                    else
-                    {
-                        wallControll = 0;
-                    }
-
-                    model = model * Matrix_Translate(wallControll * (wallWidth / 2 - 0.5f), 0.0f, wallControll * (wallWidth / 2) - 0.5f);
-                    model = model                                                    // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
-                            * Matrix_Rotate_Z(0.0f)                                  // TERCEIRO rotação Z de Euler
-                            * Matrix_Rotate_Y(wallControll * ((M_PI) / 180 * 90.0f)) // SEGUNDO rotação Y de Euler
-                            * Matrix_Rotate_X(0.0f);
-                    PushMatrix(model);
-                    model = model * Matrix_Scale(wallWidth, wallHeight, wallDepth);
-                    glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-                    DrawCube(render_as_black_uniform);
-                    PopMatrix(model);
-                } */
-
-        /* model = model * Matrix_Translate(0.0f, 0.0f, 0.0f);
-        PushMatrix(model);
-        model = model * Matrix_Scale(wallWidth, wallHeight, wallDepth);
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        DrawCube(render_as_black_uniform);
-        PopMatrix(model);
-        PushMatrix(model);
-        model = model * Matrix_Translate(-(wallWidth / 2) + (wallDepth / 2), 0.0f, 10.5f);
-        model = model                                   // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
-                * Matrix_Rotate_Z(0.0f)                 // TERCEIRO rotação Z de Euler
-                * Matrix_Rotate_Y((M_PI) / 180 * 90.0f) // SEGUNDO rotação Y de Euler
-                * Matrix_Rotate_X(0.0f);
-        PushMatrix(model);
-        model = model * Matrix_Scale(wallWidth, wallHeight, wallDepth);
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        DrawCube(render_as_black_uniform);
-        PopMatrix(model);
-        PushMatrix(model);
-        model = model * Matrix_Translate(-(wallWidth / 2) + (wallDepth / 2), 0.0f, 10.5f);
-        model = model                                   // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
-                * Matrix_Rotate_Z(0.0f)                 // TERCEIRO rotação Z de Euler
-                * Matrix_Rotate_Y((M_PI) / 180 * 90.0f) // SEGUNDO rotação Y de Euler
-                * Matrix_Rotate_X(0.0f);
-        PushMatrix(model);
-        model = model * Matrix_Scale(wallWidth, wallHeight, wallDepth);
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        DrawCube(render_as_black_uniform);
-        PopMatrix(model);
-        PushMatrix(model);
-        model = model * Matrix_Translate(-(wallWidth / 2) + (wallDepth / 2), 0.0f, 10.5f);
-        model = model                                   // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
-                * Matrix_Rotate_Z(0.0f)                 // TERCEIRO rotação Z de Euler
-                * Matrix_Rotate_Y((M_PI) / 180 * 90.0f) // SEGUNDO rotação Y de Euler
-                * Matrix_Rotate_X(0.0f);
-        PushMatrix(model);
-        model = model * Matrix_Scale(wallWidth, wallHeight, wallDepth);
-        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-        DrawCube(render_as_black_uniform);
-        PopMatrix(model); */
 
         // Neste ponto a matriz model recuperada é a matriz inicial (translação do torso)
 
@@ -526,6 +459,8 @@ int main()
         // Imprimimos na tela os ângulos de Euler que controlam a rotação do
         // terceiro cubo.
         TextRendering_ShowEulerAngles(window);
+        glm::vec4 p_model(0.5f, 0.5f, 0.5f, 1.0f);
+        TextRendering_ShowModelViewProjection(window, projection, view, model, p_model);
 
         // Imprimimos na informação sobre a matriz de projeção sendo utilizada.
         TextRendering_ShowProjection(window);
@@ -1147,12 +1082,22 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
 
     if (key == GLFW_KEY_D && action == GLFW_PRESS)
     {
-        isDPress = true;
+        isDPressed = true;
     }
 
     if (key == GLFW_KEY_D && action == GLFW_RELEASE)
     {
-        isDPress = false;
+        isDPressed = false;
+    }
+
+    if (key == GLFW_KEY_R && action == GLFW_PRESS)
+    {
+        isRPressed = true;
+    }
+
+    if (key == GLFW_KEY_R && action == GLFW_RELEASE)
+    {
+        isRPressed = false;
     }
 }
 
