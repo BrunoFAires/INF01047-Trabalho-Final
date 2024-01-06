@@ -981,7 +981,7 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
 
         // Atualizamos parâmetros da câmera com os deslocamentos
         camera.setCameraTheta(0.01f * dx);
-        camera.setCameraPhi(0.01f * dy);
+        // camera.setCameraPhi(0.01f * dy); //TODO aparentemente há um bug quando move a camera verticalmente. De qualquer forma, a princípio, não vamos deixar mover nessa direção.
 
         // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
         float phimax = 3.141592f / 2;
