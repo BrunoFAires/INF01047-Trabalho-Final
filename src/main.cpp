@@ -39,6 +39,7 @@
 #include "matrices.h"
 #include "shaders.h"
 #include <vector>
+#include "Camera.h"
 
 // Declaração de funções utilizadas para pilha de matrizes de modelagem.
 void PushMatrix(glm::mat4 M);
@@ -122,11 +123,7 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // usuário através do mouse (veja função CursorPosCallback()). A posição
 // efetiva da câmera é calculada dentro da função main(), dentro do loop de
 // renderização.
-float g_CameraTheta = 0.0f;                       // Ângulo no plano ZX em relação ao eixo Z
-float g_CameraPhi = 0.0f;                         // Ângulo em relação ao eixo Y
-float g_CameraDistance = 30.5f;                   // Distância da câmera para a origem
-float g_CurrentCameraDistance = g_CameraDistance; // Distância da câmera para a origem
-
+Camera camera(0.0f, 0.0f, 30.5f);
 // Variáveis que controlam rotação do antebraço
 float g_ForearmAngleZ = 0.0f;
 float g_ForearmAngleX = 0.0f;
@@ -269,9 +266,6 @@ int main()
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
-    glm::vec4 cameraPosition;
-    glm::vec4 cameraAux;
-    glm::vec4 camera;
 
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
@@ -308,60 +302,45 @@ int main()
         float y = r * sin(15.0f);
         float z = r * cos(g_CameraTheta);
         float x = r * sin(g_CameraTheta); */
+        camera.updateView();
 
-        float r = g_CameraDistance;
-        float y = r * sin(g_CameraPhi);
-        float z = r * cos(g_CameraPhi) * cos(g_CameraTheta);
-        float x = r * cos(g_CameraPhi) * sin(g_CameraTheta);
-        glm::vec4 camera = glm::vec4(-x, -y, -z, 0.0f);
         if (!wasdControlKey)
         {
-            cameraPosition = glm::vec4(x, y, z, 1.0f); //
+            camera.updatePosition();
         }
 
         if (isWPressed)
         {
-            cameraPosition.x += 0.02 * camera.x;
-            cameraPosition.y += 0.02 * camera.y;
-            cameraPosition.z += 0.02 * camera.z;
+            camera.moveForward();
             wasdControlKey = true;
         }
         if (isAPressed)
         {
-            cameraAux = Matrix_Rotate_Y(1.5708) * camera;
-            cameraPosition.x += 0.02 * cameraAux.x;
-            cameraPosition.z += 0.02 * cameraAux.z;
-
+            camera.moveLeft();
             wasdControlKey = true;
         }
 
         if (isSPressed)
         {
-            cameraPosition.x -= 0.02 * camera.x;
-            cameraPosition.y -= 0.02 * camera.y;
-            cameraPosition.z -= 0.02 * camera.z;
-
+            camera.moveBackwar();
             wasdControlKey = true;
         }
         if (isDPress)
         {
-            cameraAux = Matrix_Rotate_Y(1.5708) * camera;
-            cameraPosition.x -= 0.02 * cameraAux.x;
-            cameraPosition.z -= 0.02 * cameraAux.z;
-
+            camera.moveRight();
             wasdControlKey = true;
         }
 
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        glm::vec4 camera_position_c = glm::vec4(x, y, z, 1.0f);                 // Ponto "c", centro da câmera
-        glm::vec4 camera_lookat_l = glm::vec4(0.0f, 0.0f, wallWidth / 2, 1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
-        glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c;     // Vetor "view", sentido para onde a câmera está virada
-        glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);         // Vetor "up" fixado para apontar para o "céu" (eito Y global)
+        // glm::vec4 camera_position_c = glm::vec4(x, y, z, 1.0f);                 // Ponto "c", centro da câmera
+        // glm::vec4 camera_lookat_l = glm::vec4(0.0f, 0.0f, wallWidth / 2, 1.0f); // Ponto "l", para onde a câmera (look-at) estará sempre olhando
+        // glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c;     // Vetor "view", sentido para onde a câmera está virada
+        // glm::vec4 camera_up_vector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        glm::mat4 view = Matrix_Camera_View(cameraPosition, camera, camera_up_vector);
+        glm::mat4 view = Matrix_Camera_View(camera.getPositionVector(), camera.getViewVector(), camera.getUpVector());
 
         // Agora computamos a matriz de Projeção.
         glm::mat4 projection;
@@ -385,7 +364,7 @@ int main()
             // PARA PROJEÇÃO ORTOGRÁFICA veja slides 219-224 do documento Aula_09_Projecoes.pdf.
             // Para simular um "zoom" ortográfico, computamos o valor de "t"
             // utilizando a variável g_CameraDistance.
-            float t = 1.5f * g_CurrentCameraDistance / 2.5f;
+            float t = 1.5f * camera.getCameraDistance() / 2.5f;
             float b = -t;
             float r = t * g_ScreenRatio;
             float l = -r;
@@ -1001,18 +980,18 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
         float dy = ypos - g_LastCursorPosY;
 
         // Atualizamos parâmetros da câmera com os deslocamentos
-        g_CameraTheta -= 0.01f * dx;
-        g_CameraPhi += 0.01f * dy;
+        camera.setCameraTheta(0.01f * dx);
+        camera.setCameraPhi(0.01f * dy);
 
         // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
         float phimax = 3.141592f / 2;
         float phimin = -phimax;
 
-        if (g_CameraPhi > phimax)
-            g_CameraPhi = phimax;
+        if (camera.getCameraPhi() > phimax)
+            camera.setCameraPhi(phimax);
 
-        if (g_CameraPhi < phimin)
-            g_CameraPhi = phimin;
+        if (camera.getCameraPhi() < phimin)
+            camera.setCameraPhi(phimin);
 
         // Atualizamos as variáveis globais para armazenar a posição atual do
         // cursor como sendo a última posição conhecida do cursor.
@@ -1058,17 +1037,7 @@ void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
 {
     // Atualizamos a distância da câmera para a origem utilizando a
     // movimentação da "rodinha", simulando um ZOOM.
-    if (g_CurrentCameraDistance > 20 && yoffset > 0)
-    {
-
-        g_CurrentCameraDistance -= 5.0f * yoffset;
-    }
-
-    if (g_CurrentCameraDistance < 40 && yoffset < 0)
-    {
-
-        g_CurrentCameraDistance -= 5.0f * yoffset;
-    }
+    camera.setCameraDistance(camera.getCameraDistance() * -5.0f * yoffset);
 
     // Uma câmera look-at nunca pode estar exatamente "em cima" do ponto para
     // onde ela está olhando, pois isto gera problemas de divisão por zero na

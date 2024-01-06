@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "cstdio": "cpp"
+        "cstdio": "cpp",
+        "random": "cpp",
+        "numbers": "cpp",
+        "sstream": "cpp"
     }
 }

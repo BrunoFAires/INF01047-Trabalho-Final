@@ -479,7 +479,8 @@ CMakeFiles/main.dir/src/main.cpp.o: ../src/main.cpp \
   /usr/include/c++/11/vector \
   /usr/include/c++/11/bits/stl_vector.h \
   /usr/include/c++/11/bits/stl_bvector.h \
-  /usr/include/c++/11/bits/vector.tcc
+  /usr/include/c++/11/bits/vector.tcc \
+  ../include/Camera.h
 
 CMakeFiles/main.dir/src/textrendering.cpp.o: ../src/textrendering.cpp \
   /usr/include/stdc-predef.h \
@@ -777,6 +778,8 @@ CMakeFiles/main.dir/src/textrendering.cpp.o: ../src/textrendering.cpp \
   ../include/utils.h \
   ../include/dejavufont.h
 
+
+../include/Camera.h:
 
 /usr/include/c++/11/bits/vector.tcc:
 
