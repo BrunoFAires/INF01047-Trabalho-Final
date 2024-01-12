@@ -3,6 +3,8 @@
         "cstdio": "cpp",
         "random": "cpp",
         "numbers": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "limits": "cpp",
+        "type_traits": "cpp"
     }
 }
