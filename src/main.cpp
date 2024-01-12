@@ -123,7 +123,9 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // usuário através do mouse (veja função CursorPosCallback()). A posição
 // efetiva da câmera é calculada dentro da função main(), dentro do loop de
 // renderização.
-Camera camera(0.0f, 0.0f, 10.5f);
+Camera camera(0.0f, 0.0f, 10.5f, 16.5f, -2, 30.5);
+Camera cameraLookAt(0.0f, 2.0f, 30.5f, 0.f, 40, 10);
+bool lookAt = true;
 // Variáveis que controlam rotação do antebraço
 float g_ForearmAngleZ = 0.0f;
 float g_ForearmAngleX = 0.0f;
@@ -171,6 +173,7 @@ bool isAPressed = false;
 bool isSPressed = false;
 bool isDPressed = false;
 bool isRPressed = false;
+bool isCPressed = false;
 
 int main()
 {
@@ -298,11 +301,8 @@ int main()
         // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
         // e ScrollCallback().
 
-        /* float r = g_CurrentCameraDistance;
-        float y = r * sin(15.0f);
-        float z = r * cos(g_CameraTheta);
-        float x = r * sin(g_CameraTheta); */
         camera.updateView();
+        cameraLookAt.updateView();
 
         if (isWPressed)
         {
@@ -337,6 +337,11 @@ int main()
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
         glm::mat4 view = Matrix_Camera_View(camera.getPositionVector(), camera.getViewVector(), camera.getUpVector());
+
+        if (lookAt)
+        {
+            view = Matrix_Camera_View(cameraLookAt.getPositionVector(), cameraLookAt.getViewVector(), cameraLookAt.getUpVector());
+        }
 
         // Agora computamos a matriz de Projeção.
         glm::mat4 projection;
@@ -910,26 +915,19 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
 
     if (g_LeftMouseButtonPressed)
     {
-        // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
         float dx = xpos - g_LastCursorPosX;
         float dy = ypos - g_LastCursorPosY;
+        if (lookAt)
+        {
+            cameraLookAt.setCameraTheta(0.01f * dx);
+        }
+        else
+        {
 
-        // Atualizamos parâmetros da câmera com os deslocamentos
-        camera.setCameraTheta(0.01f * dx);
-        // camera.setCameraPhi(0.01f * dy); //TODO aparentemente há um bug quando move a camera verticalmente. De qualquer forma, a princípio, não vamos deixar mover nessa direção.
-
-        // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
-        float phimax = 3.141592f / 2;
-        float phimin = -phimax;
-
-        if (camera.getCameraPhi() > phimax)
-            camera.setCameraPhi(phimax);
-
-        if (camera.getCameraPhi() < phimin)
-            camera.setCameraPhi(phimin);
-
-        // Atualizamos as variáveis globais para armazenar a posição atual do
-        // cursor como sendo a última posição conhecida do cursor.
+            // Atualizamos parâmetros da câmera com os deslocamentos
+            camera.setCameraTheta(0.01f * dx);
+            // camera.setCameraPhi(0.01f * dy); //TODO aparentemente há um bug quando move a camera verticalmente. De qualquer forma, a princípio, não vamos deixar mover nessa direção.
+        }
         g_LastCursorPosX = xpos;
         g_LastCursorPosY = ypos;
     }
@@ -972,7 +970,7 @@ void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
 {
     // Atualizamos a distância da câmera para a origem utilizando a
     // movimentação da "rodinha", simulando um ZOOM.
-    camera.setCameraDistance(camera.getCameraDistance() * -5.0f * yoffset);
+    camera.setCameraDistance(-0.1f * yoffset);
 
     // Uma câmera look-at nunca pode estar exatamente "em cima" do ponto para
     // onde ela está olhando, pois isto gera problemas de divisão por zero na
@@ -1098,6 +1096,11 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_R && action == GLFW_RELEASE)
     {
         isRPressed = false;
+    }
+
+    if (key == GLFW_KEY_C && action == GLFW_PRESS)
+    {
+        lookAt = !lookAt;
     }
 }
 
