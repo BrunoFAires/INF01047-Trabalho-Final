@@ -117,7 +117,7 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // usuário através do mouse (veja função CursorPosCallback()). A posição
 // efetiva da câmera é calculada dentro da função main(), dentro do loop de
 // renderização.
-Player player(16.5f, -2, 30.5);
+Player player(19.5f, -2, 33.5);
 Camera cameraLookAt(0.0f, 2.0f, 50, 0.f, 40, 10);
 bool lookAt = true;
 
@@ -135,24 +135,25 @@ float wallWidth = 20.0f;
 float wallHeight = 5.0f;
 
 std::vector<Wall> walls = {
-    {.width = 20, .height = 5, .depth = 1, .x = 0, .y = 0, .z = 0, .rotation = 0},
-    {.width = 8, .height = 5, .depth = 1, .x = 1, .y = 0, .z = 1, .rotation = 90},
-    {.width = 12, .height = 5, .depth = 1, .x = 1, .y = 0, .z = -1, .rotation = 90},
-    {.width = 8, .height = 5, .depth = 1, .x = -1, .y = 0, .z = -1, .rotation = 90},
-    {.width = 8, .height = 5, .depth = 1, .x = -1, .y = 0, .z = 1, .rotation = 90},
-    {.width = 8, .height = 5, .depth = 1, .x = 1, .y = 0, .z = 1, .rotation = 90},
-    {.width = 20, .height = 5, .depth = 1, .x = 1, .y = 0, .z = 1, .rotation = 270},
-    {.width = 8, .height = 5, .depth = 1, .x = -1, .y = 0, .z = 1, .rotation = 270},
-    {.width = 24, .height = 5, .depth = 1, .x = -1, .y = 0, .z = -1, .rotation = 270},
-    {.width = 8, .height = 5, .depth = 1, .x = 1, .y = 0, .z = 1, .rotation = 90},
-    {.width = 32, .height = 5, .depth = 1, .x = -0.1, .y = 0, .z = -1.03, .rotation = 90},
-    {.width = 16, .height = 5, .depth = 1, .x = -1, .y = 0, .z = -1, .rotation = 90},
-    {.width = 20, .height = 5, .depth = 1, .x = -1, .y = 0, .z = -1, .rotation = 270},
-    {.width = 4, .height = 5, .depth = 1, .x = 1, .y = 0, .z = 1, .rotation = 90},
-    {.width = 16, .height = 5, .depth = 1, .x = 1, .y = 0, .z = -1, .rotation = 90},
-    {.width = 12, .height = 5, .depth = 1, .x = -1, .y = 0, .z = 1, .rotation = 270},
-    {.width = 4, .height = 5, .depth = 1, .x = -1, .y = 0, .z = -1, .rotation = 270},
-    {.width = 6, .height = 5, .depth = 1, .x = 1, .y = 0, .z = -1, .rotation = 270},
+    {.width = 20, .height = 5, .depth = 4, .x = 0, .y = 0, .z = 0, .rotation = 0},
+    {.width = 12, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 8, .rotation = 90},
+    {.width = 8, .height = 5, .depth = 4, .x = -14, .y = 0, .z = 12, .rotation = 0},
+    {.width = 8, .height = 5, .depth = 4, .x = -16, .y = 0, .z = 18, .rotation = 90},
+    {.width = 8, .height = 5, .depth = 4, .x = -22, .y = 0, .z = 20, .rotation = 0},
+    {.width = 8, .height = 5, .depth = 4, .x = -24, .y = 0, .z = 26, .rotation = 90},
+    {.width = 20, .height = 5, .depth = 4, .x = -16, .y = 0, .z = 32, .rotation = 0},
+    {.width = 20, .height = 5, .depth = 4, .x = -16, .y = 0, .z = 32, .rotation = 0},
+    {.width = 8, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 38, .rotation = 90},
+    {.width = 24, .height = 5, .depth = 4, .x = 6, .y = 0, .z = 40, .rotation = 0},
+    {.width = 8, .height = 5, .depth = 4, .x = 16, .y = 0, .z = 34, .rotation = 90},
+    {.width = 32, .height = 5, .depth = 4, .x = 34, .y = 0, .z = 36, .rotation = 0},
+    {.width = 8, .height = 5, .depth = 4, .x = 26, .y = 0, .z = 32, .rotation = 0},
+    {.width = 16, .height = 5, .depth = 4, .x = 48, .y = 0, .z = 26, .rotation = 90},
+    {.width = 20, .height = 5, .depth = 4, .x = 36, .y = 0, .z = 20, .rotation = 0},
+    {.width = 20, .height = 5, .depth = 4, .x = 20, .y = 0, .z = 24, .rotation = 0},
+    {.width = 12, .height = 5, .depth = 4, .x = 12, .y = 0, .z = 16, .rotation = 90},
+    {.width = 12, .height = 5, .depth = 4, .x = 8, .y = 0, .z = 8, .rotation = 90},
+
 };
 
 bool isWPressed = false;
@@ -294,19 +295,23 @@ int main()
         if (isWPressed)
         {
             player.moveForward();
+            cameraLookAt.moveForward();
         }
         if (isAPressed)
         {
             player.moveLeft();
+            cameraLookAt.moveLeft();
         }
 
         if (isSPressed)
         {
             player.moveBackwar();
+            cameraLookAt.moveBackwar();
         }
         if (isDPressed)
         {
             player.moveRight();
+            cameraLookAt.moveRight();
         }
 
         if (isRPressed)
@@ -368,34 +373,17 @@ int main()
         for (int i = 0; i < walls.size(); i++)
         {
             Wall wall = walls[i];
-            int control = 90 - wall.rotation;
 
-            if (control != 0)
-            {
-                control = -1;
-            }
-            else
-            {
-                control = 1;
-            }
+            model = model * Matrix_Translate(wall.x, wall.y, wall.z);
 
-            if (i % 2 == 1)
-            {
-                model = model * Matrix_Translate((-(walls[i - 1].width / 2) + (walls[i - 1].depth / 2)) * wall.x, 1.0f * wall.y, wall.z * (walls[i].width / 2) + (0.5f * wall.x * control));
-            }
-            else if (i != 0)
-            {
-                model = model * Matrix_Translate((-(walls[i - 1].width / 2) + (walls[i - 1].depth / 2)) * wall.x - 1 * (wall.x), 0.0f, wall.z * (wall.width / 2) + (0.5f * wall.x * control));
-            }
             model = model                                           // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
                     * Matrix_Rotate_Z(0.0f)                         // TERCEIRO rotação Z de Euler
                     * Matrix_Rotate_Y((M_PI) / 180 * wall.rotation) // SEGUNDO rotação Y de Euler
                     * Matrix_Rotate_X(0.0f);
-            PushMatrix(model);
             model = model * Matrix_Scale(wall.width, wall.height, wall.depth);
             glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             DrawCube(render_as_black_uniform);
-            PopMatrix(model);
+            model = Matrix_Identity();
         }
 
         // Neste ponto a matriz model recuperada é a matriz inicial (translação do torso)
