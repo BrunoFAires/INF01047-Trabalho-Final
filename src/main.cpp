@@ -67,6 +67,7 @@ void TextRendering_PrintMatrixVectorProductDivW(GLFWwindow *window, glm::mat4 M,
 // outras informações do programa. Definidas após main().
 void TextRendering_ShowModelViewProjection(GLFWwindow *window, glm::mat4 projection, glm::mat4 view, glm::mat4 model, glm::vec4 p_model);
 void TextRendering_ShowFramesPerSecond(GLFWwindow *window);
+void TextRendering_FreeCamera(GLFWwindow *window, Camera *camera);
 
 // Funções callback para comunicação com o sistema operacional e interação do
 // usuário. Veja mais comentários nas definições das mesmas, abaixo.
@@ -118,7 +119,7 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // efetiva da câmera é calculada dentro da função main(), dentro do loop de
 // renderização.
 Player player(19.5f, -2, 33.5);
-Camera cameraLookAt(0.0f, 2.0f, 50, 0.f, 40, 10);
+Camera cameraLookAt(3.13, 2.0f, 50, 10.f, 60, 40);
 bool lookAt = true;
 
 // Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
@@ -295,23 +296,19 @@ int main()
         if (isWPressed)
         {
             player.moveForward();
-            cameraLookAt.moveForward();
         }
         if (isAPressed)
         {
             player.moveLeft();
-            cameraLookAt.moveLeft();
         }
 
         if (isSPressed)
         {
             player.moveBackwar();
-            cameraLookAt.moveBackwar();
         }
         if (isDPressed)
         {
             player.moveRight();
-            cameraLookAt.moveRight();
         }
 
         if (isRPressed)
@@ -426,6 +423,7 @@ int main()
         // Imprimimos na tela informação sobre o número de quadros renderizados
         // por segundo (frames per second).
         TextRendering_ShowFramesPerSecond(window);
+        TextRendering_FreeCamera(window, &cameraLookAt);
 
         // O framebuffer onde OpenGL executa as operações de renderização não
         // é o mesmo que está sendo mostrado para o usuário, caso contrário
@@ -1084,6 +1082,21 @@ void TextRendering_ShowFramesPerSecond(GLFWwindow *window)
     float charwidth = TextRendering_CharWidth(window);
 
     TextRendering_PrintString(window, buffer, 1.0f - (numchars + 1) * charwidth, 1.0f - lineheight, 1.0f);
+}
+
+void TextRendering_FreeCamera(GLFWwindow *window, Camera *camera)
+{
+    if (!g_ShowInfoText)
+        return;
+
+    float pad = TextRendering_LineHeight(window);
+
+    char buffer[80];
+    snprintf(buffer, 80, "Camera info = Theta: (%.2f) Phi: (%.2f) Distance: (%.2f) x: (%.2f) y: (%.2f) \: (%.2f)\n",
+             camera->getCameraTheta(), camera->getCameraPhi(), camera->getCameraDistance(),
+             camera->getPositionVector().x, camera->getPositionVector().y, camera->getPositionVector().z);
+
+    TextRendering_PrintString(window, buffer, -1.0f + pad / 10, -1.0f + 2 * pad / 10, 1.0f);
 }
 
 // set makeprg=cd\ ..\ &&\ make\ run\ >/dev/null
