@@ -11,3 +11,4 @@ build/CMakeFiles/main.dir/compiler_depend.internal
 build/CMakeFiles/main.dir/compiler_depend.make
 build/CMakeFiles/main.dir/src/main.cpp.o
 build/CMakeFiles/main.dir/src/main.cpp.o.d
+build/*

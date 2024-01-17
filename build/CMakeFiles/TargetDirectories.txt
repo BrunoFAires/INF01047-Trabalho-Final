@@ -1,4 +1,0 @@
-/home/bruno/Documentos/fcg/build/CMakeFiles/main.dir
-/home/bruno/Documentos/fcg/build/CMakeFiles/run.dir
-/home/bruno/Documentos/fcg/build/CMakeFiles/edit_cache.dir
-/home/bruno/Documentos/fcg/build/CMakeFiles/rebuild_cache.dir

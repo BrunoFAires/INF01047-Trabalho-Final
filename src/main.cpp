@@ -88,11 +88,13 @@ struct SceneObject
     GLenum rendering_mode; // Modo de rasterização (GL_TRIANGLES, GL_TRIANGLE_STRIP, etc.)
 };
 
-struct Wall
+struct RectangularObject
 {
     float width, height, depth, x, y, z;
     int rotation;
 };
+
+RectangularObject makeBox(float x, float z);
 
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
 
@@ -141,11 +143,13 @@ bool g_ShowInfoText = true;
 // Variáveis que definem um programa de GPU (shaders). Veja função LoadShadersFromFiles().
 GLuint g_GpuProgramID = 0;
 
-float wallDepth = 1.0f;
-float wallWidth = 20.0f;
-float wallHeight = 5.0f;
+/* Walls */
 
-std::vector<Wall> walls = {
+// float wallDepth = 1.0f;
+// float wallWidth = 20.0f;
+// float wallHeight = 5.0f;
+
+std::vector<RectangularObject> walls = {
     {.width = 20, .height = 5, .depth = 1, .x = 0, .y = 0, .z = 0, .rotation = 0},
     {.width = 8, .height = 5, .depth = 1, .x = 1, .y = 0, .z = 1, .rotation = 90},
     {.width = 12, .height = 5, .depth = 1, .x = 1, .y = 0, .z = -1, .rotation = 90},
@@ -164,6 +168,28 @@ std::vector<Wall> walls = {
     {.width = 12, .height = 5, .depth = 1, .x = -1, .y = 0, .z = 1, .rotation = 270},
     {.width = 4, .height = 5, .depth = 1, .x = -1, .y = 0, .z = -1, .rotation = 270},
     {.width = 6, .height = 5, .depth = 1, .x = 1, .y = 0, .z = -1, .rotation = 270},
+};
+
+/* Boxes */
+// Quanto maior X, mais pra direita
+// Quanto maior Y, mais pra cima
+// Quanto maior Z, mais pra trás
+
+float ground = -2.0f;
+float cube_edge = 3.0f;
+std::vector<RectangularObject> boxes = {
+    makeBox(-3, 10),
+    makeBox(-5,15),
+    makeBox(6,11),
+    makeBox(5,18)
+};
+
+RectangularObject makeBox(float x, float z)
+{
+    float ground = -2.0f;
+    float cube_edge = 3.0f;
+
+    return {.width = cube_edge, .height = cube_edge, .depth = cube_edge, .x = x, .y = ground, .z = z, .rotation = 0};
 };
 
 bool isWPressed = false;
@@ -391,7 +417,7 @@ int main()
 
         for (int i = 0; i < walls.size(); i++)
         {
-            Wall wall = walls[i];
+            RectangularObject wall = walls[i];
             int control = 90 - wall.rotation;
 
             if (control != 0)
@@ -411,6 +437,26 @@ int main()
             {
                 model = model * Matrix_Translate((-(walls[i - 1].width / 2) + (walls[i - 1].depth / 2)) * wall.x - 1 * (wall.x), 0.0f, wall.z * (wall.width / 2) + (0.5f * wall.x * control));
             }
+            model = model                                           // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
+                    * Matrix_Rotate_Z(0.0f)                         // TERCEIRO rotação Z de Euler
+                    * Matrix_Rotate_Y((M_PI) / 180 * wall.rotation) // SEGUNDO rotação Y de Euler
+                    * Matrix_Rotate_X(0.0f);
+            PushMatrix(model);
+            model = model * Matrix_Scale(wall.width, wall.height, wall.depth);
+            glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            DrawCube(render_as_black_uniform);
+            PopMatrix(model);
+        }
+
+        /* Draw boxes */
+        for (int i = 0; i < boxes.size(); i++)
+        {
+            model = Matrix_Identity();
+
+            RectangularObject wall = boxes[i];
+
+            model = model * Matrix_Translate(wall.x, wall.y, wall.z);
+
             model = model                                           // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
                     * Matrix_Rotate_Z(0.0f)                         // TERCEIRO rotação Z de Euler
                     * Matrix_Rotate_Y((M_PI) / 180 * wall.rotation) // SEGUNDO rotação Y de Euler
