@@ -213,13 +213,6 @@ std::vector<RectangularObject> walls = {
 // Quanto maior Y, mais pra cima
 // Quanto maior Z, mais pra trás
 
-std::vector<RectangularObject> boxes = {
-    makeBox(-3, 10),
-    makeBox(-5,25),
-    makeBox(1,14),
-    makeBox(-10,18)
-};
-
 RectangularObject makeBox(float x, float z)
 {
     float ground = -3.0f;
@@ -227,6 +220,32 @@ RectangularObject makeBox(float x, float z)
 
     return {.width = cube_edge, .height = cube_edge, .depth = cube_edge, .x = x, .y = ground, .z = z, .rotation = 0};
 };
+
+std::vector<RectangularObject> boxes = {
+    makeBox(-3, 10),
+    makeBox(-5,25),
+    makeBox(1,14),
+    makeBox(-10,18)
+};
+
+/* Checkpoints */
+
+RectangularObject makeCheckpoint(float x, float z)
+{
+    float ground = -5.0f;
+    float cube_edge = 2.0f;
+
+    return {.width = cube_edge, .height = 0, .depth = cube_edge, .x = x, .y = ground, .z = z, .rotation = 0};
+};
+
+std::vector<RectangularObject> checkpoints = {
+    makeCheckpoint(-1, 5),
+    makeCheckpoint(-3,20),
+    makeCheckpoint(5,8),
+    makeCheckpoint(-15,23)
+};
+
+/* */
 
 bool isWPressed = false;
 bool isAPressed = false;
@@ -518,35 +537,30 @@ int main()
         {
             model = Matrix_Identity();
 
-            RectangularObject wall = boxes[i];
+            RectangularObject box = boxes[i];
 
-            model = model * Matrix_Translate(wall.x, wall.y, wall.z);
+            model = model * Matrix_Translate(box.x, box.y, box.z);
 
-            model = model                                           // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
-                    * Matrix_Rotate_Z(0.0f)                         // TERCEIRO rotação Z de Euler
-                    * Matrix_Rotate_Y((M_PI) / 180 * wall.rotation) // SEGUNDO rotação Y de Euler
-                    * Matrix_Rotate_X(0.0f);
-            model = model * Matrix_Scale(wall.width, wall.height, wall.depth);
+            model = model * Matrix_Rotate_Y((M_PI) / 180 * box.rotation);
+            PushMatrix(model);
+            model = model * Matrix_Scale(box.width, box.height, box.depth);
             glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             DrawCube(render_as_black_uniform);
-            model = Matrix_Identity();
+            PopMatrix(model);
         }
 
-        /* Draw boxes */
-        for (int i = 0; i < boxes.size(); i++)
+        /* Draw checkpoints */
+        for (int i = 0; i < checkpoints.size(); i++)
         {
             model = Matrix_Identity();
 
-            RectangularObject wall = boxes[i];
+            RectangularObject checkpoint = checkpoints[i];
 
-            model = model * Matrix_Translate(wall.x, wall.y, wall.z);
+            model = model * Matrix_Translate(checkpoint.x, checkpoint.y, checkpoint.z);
 
-            model = model                                           // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
-                    * Matrix_Rotate_Z(0.0f)                         // TERCEIRO rotação Z de Euler
-                    * Matrix_Rotate_Y((M_PI) / 180 * wall.rotation) // SEGUNDO rotação Y de Euler
-                    * Matrix_Rotate_X(0.0f);
+            model = model * Matrix_Rotate_Y((M_PI) / 180 * checkpoint.rotation);
             PushMatrix(model);
-            model = model * Matrix_Scale(wall.width, wall.height, wall.depth);
+            model = model * Matrix_Scale(checkpoint.width, checkpoint.height, checkpoint.depth);
             glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             DrawCube(render_as_black_uniform);
             PopMatrix(model);
