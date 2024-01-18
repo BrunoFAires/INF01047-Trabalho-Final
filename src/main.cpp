@@ -40,6 +40,7 @@
 #include "shaders.h"
 #include <vector>
 #include "Camera.h"
+#include "Player.h"
 
 // Declaração de funções utilizadas para pilha de matrizes de modelagem.
 void PushMatrix(glm::mat4 M);
@@ -65,9 +66,8 @@ void TextRendering_PrintMatrixVectorProductDivW(GLFWwindow *window, glm::mat4 M,
 // Funções abaixo renderizam como texto na janela OpenGL algumas matrizes e
 // outras informações do programa. Definidas após main().
 void TextRendering_ShowModelViewProjection(GLFWwindow *window, glm::mat4 projection, glm::mat4 view, glm::mat4 model, glm::vec4 p_model);
-void TextRendering_ShowEulerAngles(GLFWwindow *window);
-void TextRendering_ShowProjection(GLFWwindow *window);
 void TextRendering_ShowFramesPerSecond(GLFWwindow *window);
+void TextRendering_FreeCamera(GLFWwindow *window, Camera *camera);
 
 // Funções callback para comunicação com o sistema operacional e interação do
 // usuário. Veja mais comentários nas definições das mesmas, abaixo.
@@ -117,11 +117,6 @@ std::stack<glm::mat4> g_MatrixStack;
 // Razão de proporção da janela (largura/altura). Veja função FramebufferSizeCallback().
 float g_ScreenRatio = 1.0f;
 
-// Ângulos de Euler que controlam a rotação de um dos cubos da cena virtual
-float g_AngleX = 0.0f;
-float g_AngleY = 0.0f;
-float g_AngleZ = 0.0f;
-
 // "g_LeftMouseButtonPressed = true" se o usuário está com o botão esquerdo do mouse
 // pressionado no momento atual. Veja função MouseButtonCallback().
 bool g_LeftMouseButtonPressed = false;
@@ -132,14 +127,9 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // usuário através do mouse (veja função CursorPosCallback()). A posição
 // efetiva da câmera é calculada dentro da função main(), dentro do loop de
 // renderização.
-Camera camera(0.0f, 0.0f, 10.5f);
-// Variáveis que controlam rotação do antebraço
-float g_ForearmAngleZ = 0.0f;
-float g_ForearmAngleX = 0.0f;
-
-// Variáveis que controlam translação do torso
-float g_TorsoPositionX = 0.0f;
-float g_TorsoPositionY = 0.0f;
+Player player(19.5f, -2, 33.5);
+Camera cameraLookAt(3.13, 2.0f, 50, 10.f, 60, 40);
+bool lookAt = true;
 
 // Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
 bool g_UsePerspectiveProjection = true;
@@ -157,24 +147,25 @@ GLuint g_GpuProgramID = 0;
 // float wallHeight = 5.0f;
 
 std::vector<RectangularObject> walls = {
-    {.width = 20, .height = 5, .depth = 1, .x = 0, .y = 0, .z = 0, .rotation = 0},
-    {.width = 8, .height = 5, .depth = 1, .x = 1, .y = 0, .z = 1, .rotation = 90},
-    {.width = 12, .height = 5, .depth = 1, .x = 1, .y = 0, .z = -1, .rotation = 90},
-    {.width = 8, .height = 5, .depth = 1, .x = -1, .y = 0, .z = -1, .rotation = 90},
-    {.width = 8, .height = 5, .depth = 1, .x = -1, .y = 0, .z = 1, .rotation = 90},
-    {.width = 8, .height = 5, .depth = 1, .x = 1, .y = 0, .z = 1, .rotation = 90},
-    {.width = 20, .height = 5, .depth = 1, .x = 1, .y = 0, .z = 1, .rotation = 270},
-    {.width = 8, .height = 5, .depth = 1, .x = -1, .y = 0, .z = 1, .rotation = 270},
-    {.width = 24, .height = 5, .depth = 1, .x = -1, .y = 0, .z = -1, .rotation = 270},
-    {.width = 8, .height = 5, .depth = 1, .x = 1, .y = 0, .z = 1, .rotation = 90},
-    {.width = 32, .height = 5, .depth = 1, .x = -0.1, .y = 0, .z = -1.03, .rotation = 90},
-    {.width = 16, .height = 5, .depth = 1, .x = -1, .y = 0, .z = -1, .rotation = 90},
-    {.width = 20, .height = 5, .depth = 1, .x = -1, .y = 0, .z = -1, .rotation = 270},
-    {.width = 4, .height = 5, .depth = 1, .x = 1, .y = 0, .z = 1, .rotation = 90},
-    {.width = 16, .height = 5, .depth = 1, .x = 1, .y = 0, .z = -1, .rotation = 90},
-    {.width = 12, .height = 5, .depth = 1, .x = -1, .y = 0, .z = 1, .rotation = 270},
-    {.width = 4, .height = 5, .depth = 1, .x = -1, .y = 0, .z = -1, .rotation = 270},
-    {.width = 6, .height = 5, .depth = 1, .x = 1, .y = 0, .z = -1, .rotation = 270},
+    {.width = 20, .height = 5, .depth = 4, .x = 0, .y = 0, .z = 0, .rotation = 0},
+    {.width = 12, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 8, .rotation = 90},
+    {.width = 8, .height = 5, .depth = 4, .x = -14, .y = 0, .z = 12, .rotation = 0},
+    {.width = 8, .height = 5, .depth = 4, .x = -16, .y = 0, .z = 18, .rotation = 90},
+    {.width = 8, .height = 5, .depth = 4, .x = -22, .y = 0, .z = 20, .rotation = 0},
+    {.width = 8, .height = 5, .depth = 4, .x = -24, .y = 0, .z = 26, .rotation = 90},
+    {.width = 20, .height = 5, .depth = 4, .x = -16, .y = 0, .z = 32, .rotation = 0},
+    {.width = 20, .height = 5, .depth = 4, .x = -16, .y = 0, .z = 32, .rotation = 0},
+    {.width = 8, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 38, .rotation = 90},
+    {.width = 24, .height = 5, .depth = 4, .x = 6, .y = 0, .z = 40, .rotation = 0},
+    {.width = 8, .height = 5, .depth = 4, .x = 16, .y = 0, .z = 34, .rotation = 90},
+    {.width = 32, .height = 5, .depth = 4, .x = 34, .y = 0, .z = 36, .rotation = 0},
+    {.width = 8, .height = 5, .depth = 4, .x = 26, .y = 0, .z = 32, .rotation = 0},
+    {.width = 16, .height = 5, .depth = 4, .x = 48, .y = 0, .z = 26, .rotation = 90},
+    {.width = 20, .height = 5, .depth = 4, .x = 36, .y = 0, .z = 20, .rotation = 0},
+    {.width = 20, .height = 5, .depth = 4, .x = 20, .y = 0, .z = 24, .rotation = 0},
+    {.width = 12, .height = 5, .depth = 4, .x = 12, .y = 0, .z = 16, .rotation = 90},
+    {.width = 12, .height = 5, .depth = 4, .x = 8, .y = 0, .z = 8, .rotation = 90},
+
 };
 
 /* Boxes */
@@ -202,6 +193,7 @@ bool isAPressed = false;
 bool isSPressed = false;
 bool isDPressed = false;
 bool isRPressed = false;
+bool isCPressed = false;
 
 bool canMove(DIRECTION direction)
 {
@@ -214,7 +206,7 @@ bool testCollisionWithWalls(RectangularObject object)
 {
     for (int i = 0; i < walls.size(); i++)
     {
-        if (pos[0] == walls[i].x)
+        if (object.x == walls[i].x)
         {
             return true;
         }
@@ -348,36 +340,33 @@ int main()
         // controladas pelo mouse do usuário. Veja as funções CursorPosCallback()
         // e ScrollCallback().
 
-        /* float r = g_CurrentCameraDistance;
-        float y = r * sin(15.0f);
-        float z = r * cos(g_CameraTheta);
-        float x = r * sin(g_CameraTheta); */
-        camera.updateView();
+        player.getCamera().updateView();
+        cameraLookAt.updateView();
 
         if (isWPressed)
         {
             if (canMove(FORWARD))
             {
-                camera.moveForward();
+                player.moveForward();
             }
         }
         if (isAPressed)
         {
-            camera.moveLeft();
+            player.moveLeft();
         }
 
         if (isSPressed)
         {
-            camera.moveBackwar();
+            player.moveBackwar();
         }
         if (isDPressed)
         {
-            camera.moveRight();
+            player.moveRight();
         }
 
         if (isRPressed)
         {
-            camera.restart();
+            player.restart();
         }
 
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
@@ -389,7 +378,12 @@ int main()
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        glm::mat4 view = Matrix_Camera_View(camera.getPositionVector(), camera.getViewVector(), camera.getUpVector());
+        glm::mat4 view = Matrix_Camera_View(player.getCamera().getPositionVector(), player.getCamera().getViewVector(), player.getCamera().getUpVector());
+
+        if (lookAt)
+        {
+            view = Matrix_Camera_View(cameraLookAt.getPositionVector(), cameraLookAt.getViewVector(), cameraLookAt.getUpVector());
+        }
 
         // Agora computamos a matriz de Projeção.
         glm::mat4 projection;
@@ -399,26 +393,10 @@ int main()
         float nearplane = -0.1f;  // Posição do "near plane"
         float farplane = -100.0f; // Posição do "far plane"
 
-        if (g_UsePerspectiveProjection)
-        {
-            // Projeção Perspectiva.
-            // Para definição do field of view (FOV), veja slides 205-215 do documento Aula_09_Projecoes.pdf.
-            float field_of_view = 3.141592 / 3.0f;
-            projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
-        }
-        else
-        {
-            // Projeção Ortográfica.
-            // Para definição dos valores l, r, b, t ("left", "right", "bottom", "top"),
-            // PARA PROJEÇÃO ORTOGRÁFICA veja slides 219-224 do documento Aula_09_Projecoes.pdf.
-            // Para simular um "zoom" ortográfico, computamos o valor de "t"
-            // utilizando a variável g_CameraDistance.
-            float t = 1.5f * camera.getCameraDistance() / 2.5f;
-            float b = -t;
-            float r = t * g_ScreenRatio;
-            float l = -r;
-            projection = Matrix_Orthographic(l, r, b, t, nearplane, farplane);
-        }
+        // Projeção Perspectiva.
+        // Para definição do field of view (FOV), veja slides 205-215 do documento Aula_09_Projecoes.pdf.
+        float field_of_view = 3.141592 / 3.0f;
+        projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
 
         // Enviamos as matrizes "view" e "projection" para a placa de vídeo
         // (GPU). Veja o arquivo "shader_vertex.glsl", onde estas são
@@ -445,34 +423,36 @@ int main()
         for (int i = 0; i < walls.size(); i++)
         {
             RectangularObject wall = walls[i];
-            int control = 90 - wall.rotation;
 
-            if (control != 0)
-            {
-                control = -1;
-            }
-            else
-            {
-                control = 1;
-            }
+            model = model * Matrix_Translate(wall.x, wall.y, wall.z);
 
-            if (i % 2 == 1)
-            {
-                model = model * Matrix_Translate((-(walls[i - 1].width / 2) + (walls[i - 1].depth / 2)) * wall.x, 1.0f * wall.y, wall.z * (walls[i].width / 2) + (0.5f * wall.x * control));
-            }
-            else if (i != 0)
-            {
-                model = model * Matrix_Translate((-(walls[i - 1].width / 2) + (walls[i - 1].depth / 2)) * wall.x - 1 * (wall.x), 0.0f, wall.z * (wall.width / 2) + (0.5f * wall.x * control));
-            }
             model = model                                           // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
                     * Matrix_Rotate_Z(0.0f)                         // TERCEIRO rotação Z de Euler
                     * Matrix_Rotate_Y((M_PI) / 180 * wall.rotation) // SEGUNDO rotação Y de Euler
                     * Matrix_Rotate_X(0.0f);
-            PushMatrix(model);
             model = model * Matrix_Scale(wall.width, wall.height, wall.depth);
             glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             DrawCube(render_as_black_uniform);
-            PopMatrix(model);
+            model = Matrix_Identity();
+        }
+
+        /* Draw boxes */
+        for (int i = 0; i < boxes.size(); i++)
+        {
+            model = Matrix_Identity();
+
+            RectangularObject wall = boxes[i];
+
+            model = model * Matrix_Translate(wall.x, wall.y, wall.z);
+
+            model = model                                           // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
+                    * Matrix_Rotate_Z(0.0f)                         // TERCEIRO rotação Z de Euler
+                    * Matrix_Rotate_Y((M_PI) / 180 * wall.rotation) // SEGUNDO rotação Y de Euler
+                    * Matrix_Rotate_X(0.0f);
+            model = model * Matrix_Scale(wall.width, wall.height, wall.depth);
+            glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            DrawCube(render_as_black_uniform);
+            model = Matrix_Identity();
         }
 
         /* Draw boxes */
@@ -529,18 +509,13 @@ int main()
         // alterar o mesmo. Isso evita bugs.
         glBindVertexArray(0);
 
-        // Imprimimos na tela os ângulos de Euler que controlam a rotação do
-        // terceiro cubo.
-        TextRendering_ShowEulerAngles(window);
         glm::vec4 p_model(0.5f, 0.5f, 0.5f, 1.0f);
         TextRendering_ShowModelViewProjection(window, projection, view, model, p_model);
-
-        // Imprimimos na informação sobre a matriz de projeção sendo utilizada.
-        TextRendering_ShowProjection(window);
 
         // Imprimimos na tela informação sobre o número de quadros renderizados
         // por segundo (frames per second).
         TextRendering_ShowFramesPerSecond(window);
+        TextRendering_FreeCamera(window, &cameraLookAt);
 
         // O framebuffer onde OpenGL executa as operações de renderização não
         // é o mesmo que está sendo mostrado para o usuário, caso contrário
@@ -983,58 +958,18 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
 
     if (g_LeftMouseButtonPressed)
     {
-        // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
         float dx = xpos - g_LastCursorPosX;
-        float dy = ypos - g_LastCursorPosY;
+        if (lookAt)
+        {
+            cameraLookAt.setCameraTheta(0.01f * dx);
+        }
+        else
+        {
 
-        // Atualizamos parâmetros da câmera com os deslocamentos
-        camera.setCameraTheta(0.01f * dx);
-        // camera.setCameraPhi(0.01f * dy); //TODO aparentemente há um bug quando move a camera verticalmente. De qualquer forma, a princípio, não vamos deixar mover nessa direção.
-
-        // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
-        float phimax = 3.141592f / 2;
-        float phimin = -phimax;
-
-        if (camera.getCameraPhi() > phimax)
-            camera.setCameraPhi(phimax);
-
-        if (camera.getCameraPhi() < phimin)
-            camera.setCameraPhi(phimin);
-
-        // Atualizamos as variáveis globais para armazenar a posição atual do
-        // cursor como sendo a última posição conhecida do cursor.
-        g_LastCursorPosX = xpos;
-        g_LastCursorPosY = ypos;
-    }
-
-    if (g_RightMouseButtonPressed)
-    {
-        // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-        float dx = xpos - g_LastCursorPosX;
-        float dy = ypos - g_LastCursorPosY;
-
-        // Atualizamos parâmetros da antebraço com os deslocamentos
-        g_ForearmAngleZ -= 0.01f * dx;
-        g_ForearmAngleX += 0.01f * dy;
-
-        // Atualizamos as variáveis globais para armazenar a posição atual do
-        // cursor como sendo a última posição conhecida do cursor.
-        g_LastCursorPosX = xpos;
-        g_LastCursorPosY = ypos;
-    }
-
-    if (g_MiddleMouseButtonPressed)
-    {
-        // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-        float dx = xpos - g_LastCursorPosX;
-        float dy = ypos - g_LastCursorPosY;
-
-        // Atualizamos parâmetros da antebraço com os deslocamentos
-        g_TorsoPositionX += 0.01f * dx;
-        g_TorsoPositionY -= 0.01f * dy;
-
-        // Atualizamos as variáveis globais para armazenar a posição atual do
-        // cursor como sendo a última posição conhecida do cursor.
+            // Atualizamos parâmetros da câmera com os deslocamentos
+            player.getCamera().setCameraTheta(0.01f * dx);
+            // player.getCamera().setCameraPhi(0.01f * dy); //TODO aparentemente há um bug quando move a camera verticalmente. De qualquer forma, a princípio, não vamos deixar mover nessa direção.
+        }
         g_LastCursorPosX = xpos;
         g_LastCursorPosY = ypos;
     }
@@ -1045,7 +980,7 @@ void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
 {
     // Atualizamos a distância da câmera para a origem utilizando a
     // movimentação da "rodinha", simulando um ZOOM.
-    camera.setCameraDistance(camera.getCameraDistance() * -5.0f * yoffset);
+    player.getCamera().setCameraDistance(-0.1f * yoffset);
 
     // Uma câmera look-at nunca pode estar exatamente "em cima" do ponto para
     // onde ela está olhando, pois isto gera problemas de divisão por zero na
@@ -1077,46 +1012,6 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     //   Se apertar tecla shift+Y então g_AngleY -= delta;
     //   Se apertar tecla Z       então g_AngleZ += delta;
     //   Se apertar tecla shift+Z então g_AngleZ -= delta;
-
-    float delta = 3.141592 / 16; // 22.5 graus, em radianos.
-
-    if (key == GLFW_KEY_X && action == GLFW_PRESS)
-    {
-        g_AngleX += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
-    }
-
-    if (key == GLFW_KEY_Y && action == GLFW_PRESS)
-    {
-        g_AngleY += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
-    }
-    if (key == GLFW_KEY_Z && action == GLFW_PRESS)
-    {
-        g_AngleZ += (mod & GLFW_MOD_SHIFT) ? -delta : delta;
-    }
-
-    // Se o usuário apertar a tecla espaço, resetamos os ângulos de Euler para zero.
-    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
-    {
-        g_AngleX = 0.0f;
-        g_AngleY = 0.0f;
-        g_AngleZ = 0.0f;
-        g_ForearmAngleX = 0.0f;
-        g_ForearmAngleZ = 0.0f;
-        g_TorsoPositionX = 0.0f;
-        g_TorsoPositionY = 0.0f;
-    }
-
-    // Se o usuário apertar a tecla P, utilizamos projeção perspectiva.
-    if (key == GLFW_KEY_P && action == GLFW_PRESS)
-    {
-        g_UsePerspectiveProjection = true;
-    }
-
-    // Se o usuário apertar a tecla O, utilizamos projeção ortográfica.
-    if (key == GLFW_KEY_O && action == GLFW_PRESS)
-    {
-        g_UsePerspectiveProjection = false;
-    }
 
     // Se o usuário apertar a tecla H, fazemos um "toggle" do texto informativo mostrado na tela.
     if (key == GLFW_KEY_H && action == GLFW_PRESS)
@@ -1171,6 +1066,11 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_R && action == GLFW_RELEASE)
     {
         isRPressed = false;
+    }
+
+    if (key == GLFW_KEY_C && action == GLFW_PRESS)
+    {
+        lookAt = !lookAt;
     }
 }
 
@@ -1240,36 +1140,6 @@ void TextRendering_ShowModelViewProjection(
     TextRendering_PrintMatrixVectorProductMoreDigits(window, viewport_mapping, p_ndc, -1.0f, 1.0f - 26 * pad, 1.0f);
 }
 
-// Escrevemos na tela os ângulos de Euler definidos nas variáveis globais
-// g_AngleX, g_AngleY, e g_AngleZ.
-void TextRendering_ShowEulerAngles(GLFWwindow *window)
-{
-    if (!g_ShowInfoText)
-        return;
-
-    float pad = TextRendering_LineHeight(window);
-
-    char buffer[80];
-    snprintf(buffer, 80, "Euler Angles rotation matrix = Z(%.2f)*Y(%.2f)*X(%.2f)\n", g_AngleZ, g_AngleY, g_AngleX);
-
-    TextRendering_PrintString(window, buffer, -1.0f + pad / 10, -1.0f + 2 * pad / 10, 1.0f);
-}
-
-// Escrevemos na tela qual matriz de projeção está sendo utilizada.
-void TextRendering_ShowProjection(GLFWwindow *window)
-{
-    if (!g_ShowInfoText)
-        return;
-
-    float lineheight = TextRendering_LineHeight(window);
-    float charwidth = TextRendering_CharWidth(window);
-
-    if (g_UsePerspectiveProjection)
-        TextRendering_PrintString(window, "Perspective", 1.0f - 13 * charwidth, -1.0f + 2 * lineheight / 10, 1.0f);
-    else
-        TextRendering_PrintString(window, "Orthographic", 1.0f - 13 * charwidth, -1.0f + 2 * lineheight / 10, 1.0f);
-}
-
 // Escrevemos na tela o número de quadros renderizados por segundo (frames per
 // second).
 void TextRendering_ShowFramesPerSecond(GLFWwindow *window)
@@ -1304,6 +1174,21 @@ void TextRendering_ShowFramesPerSecond(GLFWwindow *window)
     float charwidth = TextRendering_CharWidth(window);
 
     TextRendering_PrintString(window, buffer, 1.0f - (numchars + 1) * charwidth, 1.0f - lineheight, 1.0f);
+}
+
+void TextRendering_FreeCamera(GLFWwindow *window, Camera *camera)
+{
+    if (!g_ShowInfoText)
+        return;
+
+    float pad = TextRendering_LineHeight(window);
+
+    char buffer[80];
+    snprintf(buffer, 80, "Camera info = Theta: (%.2f) Phi: (%.2f) Distance: (%.2f) x: (%.2f) y: (%.2f) \: (%.2f)\n",
+             camera->getCameraTheta(), camera->getCameraPhi(), camera->getCameraDistance(),
+             camera->getPositionVector().x, camera->getPositionVector().y, camera->getPositionVector().z);
+
+    TextRendering_PrintString(window, buffer, -1.0f + pad / 10, -1.0f + 2 * pad / 10, 1.0f);
 }
 
 // set makeprg=cd\ ..\ &&\ make\ run\ >/dev/null
