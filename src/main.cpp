@@ -219,8 +219,6 @@ bool testCollisionWithWalls(DIRECTION direction)
     case BACKWARD: player_clone->moveBackward();
     }
 
-    player_clone->getHitbox().print();
-
     for (int i = 0; i < walls.size(); i++)
     {
         if (hitboxesCollide(player_clone->getHitbox(), walls[i].getHitbox()))
