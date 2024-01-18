@@ -43,6 +43,8 @@
 #include "Player.h"
 #include "collision.h"
 
+#define MOVE_CAM_WO_BUTTON true
+
 // Declaração de funções utilizadas para pilha de matrizes de modelagem.
 void PushMatrix(glm::mat4 M);
 void PopMatrix(glm::mat4 &M);
@@ -79,9 +81,15 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow *window, double xpos, double ypos);
 void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 
+enum DIRECTION {
+    FORWARD,
+    BACKWARD,
+    LEFT,
+    RIGHT
+};
+
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
-
 struct SceneObject
 {
     const char *name;      // Nome do objeto
@@ -103,16 +111,36 @@ struct RectangularObject
             .z1 = z - depth/2.0f, .z2 = z + depth/2.0f,
         };
     };
+
+    void move(DIRECTION direction, glm::vec4 viewVector, float qty = 1.0f)
+    {
+        float velocity = 0.02f;
+        glm::vec4 cameraAux = Matrix_Rotate_Y(1.5708) * viewVector;
+
+        switch (direction) {
+            case FORWARD:
+                x += velocity * viewVector.x;
+                z += velocity * viewVector.z;
+                break;
+            case BACKWARD:
+                x -= velocity * viewVector.x;
+                z -= velocity * viewVector.z;
+                break;
+            case LEFT:
+                x += velocity * cameraAux.x;
+                z += velocity * cameraAux.z;
+                break;
+            case RIGHT:
+                x -= velocity * cameraAux.x;
+                z -= velocity * cameraAux.z;
+                break;
+        }
+    }
 };
 
 RectangularObject makeBox(float x, float z);
 
-enum DIRECTION {
-    FORWARD,
-    BACKWARD,
-    LEFT,
-    RIGHT
-};
+
 
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
 
@@ -194,8 +222,8 @@ std::vector<RectangularObject> boxes = {
 
 RectangularObject makeBox(float x, float z)
 {
-    float ground = -2.0f;
-    float cube_edge = 3.0f;
+    float ground = -3.0f;
+    float cube_edge = 2.0f;
 
     return {.width = cube_edge, .height = cube_edge, .depth = cube_edge, .x = x, .y = ground, .z = z, .rotation = 0};
 };
@@ -247,6 +275,7 @@ bool testCollisionWithBoxes(DIRECTION direction)
         if (hitboxesCollide(player_clone->getHitbox(), boxes[i].getHitbox()))
         {
             printf("Collision with box!\n");
+            boxes[i].move(direction, player.getCamera().getViewVector());
             return true;
         }
     }
@@ -1004,7 +1033,7 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
     // parâmetros que definem a posição da câmera dentro da cena virtual.
     // Assim, temos que o usuário consegue controlar a câmera.
 
-    if (g_LeftMouseButtonPressed)
+    if (g_LeftMouseButtonPressed || MOVE_CAM_WO_BUTTON)
     {
         float dx = xpos - g_LastCursorPosX;
         if (lookAt)
