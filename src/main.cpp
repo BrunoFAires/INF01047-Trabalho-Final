@@ -98,9 +98,9 @@ struct RectangularObject
     Hitbox getHitbox()
     {
         return {
-            .x1 = x, .x2 = x + width,
-            .y1 = y, .y2 = y + height,
-            .z1 = z, .z2 = z + depth,
+            .x1 = x - width/2.0f, .x2 = x + width/2.0f,
+            .y1 = y - height/2.0f, .y2 = y + height/2.0f,
+            .z1 = z - depth/2.0f, .z2 = z + depth/2.0f,
         };
     };
 };
@@ -138,7 +138,8 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // usuário através do mouse (veja função CursorPosCallback()). A posição
 // efetiva da câmera é calculada dentro da função main(), dentro do loop de
 // renderização.
-Player player(19.5f, -2, 33.5);
+// Player player(19.5f, -2, 33.5);
+Player player(1, -2, 28.5);
 Camera cameraLookAt(3.13, 2.0f, 50, 10.f, 60, 40);
 bool lookAt = true;
 
@@ -206,26 +207,23 @@ bool isDPressed = false;
 bool isRPressed = false;
 bool isCPressed = false;
 
-bool canMove(DIRECTION direction)
-{
-    player.getHitbox().print();
-    return true;
-}
-
 bool testCollisionWithWalls(DIRECTION direction)
 {
-    Hitbox playerNewHitbox = player.getHitbox();
+    Player* player_clone = player.clone();
+
     switch (direction)
     {
-    case FORWARD: playerNewHitbox.x1 += 1; playerNewHitbox.x2 += 1;
-    case LEFT: playerNewHitbox.z1 -= 1; playerNewHitbox.z2 -= 1;
-    case RIGHT: playerNewHitbox.z1 += 1; playerNewHitbox.z2 += 1;
-    case BACKWARD: playerNewHitbox.x1 -= 1; playerNewHitbox.x2 -= 1;
+    case FORWARD: player_clone->moveForward();
+    case LEFT: player_clone->moveLeft();
+    case RIGHT: player_clone->moveRight();
+    case BACKWARD: player_clone->moveBackward();
     }
+
+    player_clone->getHitbox().print();
 
     for (int i = 0; i < walls.size(); i++)
     {
-        if (hitboxesCollide(playerNewHitbox, walls[i].getHitbox()))
+        if (hitboxesCollide(player_clone->getHitbox(), walls[i].getHitbox()))
         {
             printf("Collision!\n");
             return true;
@@ -382,7 +380,7 @@ int main()
         {
             if (!testCollisionWithWalls(BACKWARD))
             {
-                player.movebackward();
+                player.moveBackward();
             }
         }
         if (isDPressed)

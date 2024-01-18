@@ -14,13 +14,14 @@ Camera &Player::getCamera()
 }
 
 Hitbox Player::getHitbox() {
+    glm::vec4 pos = getCamera().getPositionVector();
+    float playerWidth = 2.0f;
     return {
-        .x1 = positionVector.x - 0.5f, .x2 = positionVector.x + 0.5f,
-        .y1 = positionVector.y - 0.5f, .y2 = positionVector.y + 0.5f,
-        .z1 = positionVector.z - 0.5f, .z2 = positionVector.z + 0.5f,
+        .x1 = pos.x - playerWidth/2.0f, .x2 = pos.x + playerWidth/2.0f,
+        .y1 = pos.y - playerWidth/2.0f, .y2 = pos.y + playerWidth/2.0f,
+        .z1 = pos.z - playerWidth/2.0f, .z2 = pos.z + playerWidth/2.0f,
     };
 }
-
 
 void Player::moveForward()
 {
@@ -28,9 +29,9 @@ void Player::moveForward()
     positionVector.x += velocity * positionVector.x;
 }
 
-void Player::movebackward()
+void Player::moveBackward()
 {
-    camera->movebackward();
+    camera->moveBackward();
     positionVector.x -= velocity * positionVector.x;
 }
 
@@ -49,4 +50,12 @@ void Player::moveRight()
 void Player::restart()
 {
     camera->restart();
+}
+
+Player* Player::clone() {
+    Player* newPlayer = new Player(positionVector.x, positionVector.y, positionVector.z);
+    
+    *(newPlayer->camera) = *camera;
+
+    return newPlayer;
 }

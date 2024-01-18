@@ -20,10 +20,11 @@ public:
     Hitbox getHitbox();
 
     void moveForward();
-    void movebackward();
+    void moveBackward();
     void moveLeft();
     void moveRight();
     void restart();
+    Player* clone();
 };
 
 #endif // PLAYER_H
