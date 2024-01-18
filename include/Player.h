@@ -4,6 +4,7 @@
 #include "glm/mat4x4.hpp"
 #include "glm/mat4x4.hpp"
 #include "Camera.h"
+#include "collision.h"
 
 class Player
 {
@@ -16,9 +17,10 @@ public:
     Player(float x, float y, float z);
     glm::vec4 getPositionVector();
     Camera &getCamera();
+    Hitbox getHitbox();
 
     void moveForward();
-    void moveBackwar();
+    void movebackward();
     void moveLeft();
     void moveRight();
     void restart();

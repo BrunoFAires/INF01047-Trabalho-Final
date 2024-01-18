@@ -70,7 +70,7 @@ void Camera::moveForward()
     positionVector.z += velocity * viewVector.z;
 }
 
-void Camera::moveBackwar()
+void Camera::movebackward()
 {
     positionVector.x -= velocity * viewVector.x;
     positionVector.y -= velocity * viewVector.y;

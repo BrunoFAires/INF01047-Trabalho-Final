@@ -41,6 +41,7 @@
 #include <vector>
 #include "Camera.h"
 #include "Player.h"
+#include "collision.h"
 
 // Declaração de funções utilizadas para pilha de matrizes de modelagem.
 void PushMatrix(glm::mat4 M);
@@ -80,6 +81,7 @@ void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
+
 struct SceneObject
 {
     const char *name;      // Nome do objeto
@@ -92,6 +94,15 @@ struct RectangularObject
 {
     float width, height, depth, x, y, z;
     int rotation;
+
+    Hitbox getHitbox()
+    {
+        return {
+            .x1 = x, .x2 = x + width,
+            .y1 = y, .y2 = y + height,
+            .z1 = z, .z2 = z + depth,
+        };
+    };
 };
 
 RectangularObject makeBox(float x, float z);
@@ -197,21 +208,30 @@ bool isCPressed = false;
 
 bool canMove(DIRECTION direction)
 {
-    
-    return false;
+    player.getHitbox().print();
+    return true;
 }
 
-
-bool testCollisionWithWalls(RectangularObject object)
+bool testCollisionWithWalls(DIRECTION direction)
 {
+    Hitbox playerNewHitbox = player.getHitbox();
+    switch (direction)
+    {
+    case FORWARD: playerNewHitbox.x1 += 1; playerNewHitbox.x2 += 1;
+    case LEFT: playerNewHitbox.z1 -= 1; playerNewHitbox.z2 -= 1;
+    case RIGHT: playerNewHitbox.z1 += 1; playerNewHitbox.z2 += 1;
+    case BACKWARD: playerNewHitbox.x1 -= 1; playerNewHitbox.x2 -= 1;
+    }
+
     for (int i = 0; i < walls.size(); i++)
     {
-        if (object.x == walls[i].x)
+        if (hitboxesCollide(playerNewHitbox, walls[i].getHitbox()))
         {
+            printf("Collision!\n");
             return true;
         }
     }
-    return true;
+    return false;
 }
 
 int main()
@@ -345,23 +365,32 @@ int main()
 
         if (isWPressed)
         {
-            if (canMove(FORWARD))
+            if (!testCollisionWithWalls(FORWARD))
             {
                 player.moveForward();
             }
         }
         if (isAPressed)
         {
-            player.moveLeft();
+            if (!testCollisionWithWalls(LEFT))
+            {
+                player.moveLeft();
+            }
         }
 
         if (isSPressed)
         {
-            player.moveBackwar();
+            if (!testCollisionWithWalls(BACKWARD))
+            {
+                player.movebackward();
+            }
         }
         if (isDPressed)
         {
-            player.moveRight();
+            if (!testCollisionWithWalls(RIGHT))
+            {
+                player.moveRight();
+            }
         }
 
         if (isRPressed)
@@ -389,7 +418,7 @@ int main()
         glm::mat4 projection;
 
         // Note que, no sistema de coordenadas da câmera, os planos near e far
-        // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
+        // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.Ftest
         float nearplane = -0.1f;  // Posição do "near plane"
         float farplane = -100.0f; // Posição do "far plane"
 
@@ -1184,7 +1213,7 @@ void TextRendering_FreeCamera(GLFWwindow *window, Camera *camera)
     float pad = TextRendering_LineHeight(window);
 
     char buffer[80];
-    snprintf(buffer, 80, "Camera info = Theta: (%.2f) Phi: (%.2f) Distance: (%.2f) x: (%.2f) y: (%.2f) \: (%.2f)\n",
+    snprintf(buffer, 80, "Camera info = Theta: (%.2f) Phi: (%.2f) Distance: (%.2f) x: (%.2f) y: (%.2f) : (%.2f)\n",
              camera->getCameraTheta(), camera->getCameraPhi(), camera->getCameraDistance(),
              camera->getPositionVector().x, camera->getPositionVector().y, camera->getPositionVector().z);
 

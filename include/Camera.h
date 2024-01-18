@@ -29,7 +29,7 @@ public:
     void setCameraDistance(float value);
     void setPosition(float x, float y, float z);
     void moveForward();
-    void moveBackwar();
+    void movebackward();
     void moveLeft();
     void moveRight();
     void updateView();
