@@ -9,15 +9,6 @@ bool hitboxesCollide(const Hitbox& hitbox1, const Hitbox& hitbox2) {
     bool zOverlap = (hitbox1.z1 <= hitbox2.z2 && hitbox1.z2 >= hitbox2.z1);
 
     bool didCollide = xOverlap && zOverlap;
-
-    if (didCollide)
-    {
-        printf("Collide\n");
-        // printf("Player: ");
-        // hitbox1.print();
-        // printf("Wall: ");
-        // hitbox2.print();
-    }
     
     return didCollide;
 }

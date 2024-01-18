@@ -187,9 +187,9 @@ std::vector<RectangularObject> walls = {
 
 std::vector<RectangularObject> boxes = {
     makeBox(-3, 10),
-    makeBox(-5,15),
-    makeBox(6,11),
-    makeBox(5,18)
+    makeBox(-5,25),
+    makeBox(1,14),
+    makeBox(-10,18)
 };
 
 RectangularObject makeBox(float x, float z)
@@ -225,7 +225,32 @@ bool testCollisionWithWalls(DIRECTION direction)
     {
         if (hitboxesCollide(player_clone->getHitbox(), walls[i].getHitbox()))
         {
-            printf("Collision!\n");
+            printf("Collision with wall!\n");
+            return true;
+        }
+    }
+    return false;
+}
+
+bool testCollisionWithBoxes(DIRECTION direction)
+{
+    Player* player_clone = player.clone();
+
+    switch (direction)
+    {
+    case FORWARD: player_clone->moveForward();
+    case LEFT: player_clone->moveLeft();
+    case RIGHT: player_clone->moveRight();
+    case BACKWARD: player_clone->moveBackward();
+    }
+
+    player_clone->getHitbox().print();
+
+    for (int i = 0; i < boxes.size(); i++)
+    {
+        if (hitboxesCollide(player_clone->getHitbox(), boxes[i].getHitbox()))
+        {
+            printf("Collision with box!\n");
             return true;
         }
     }
@@ -363,14 +388,14 @@ int main()
 
         if (isWPressed)
         {
-            if (!testCollisionWithWalls(FORWARD))
+            if (!testCollisionWithWalls(FORWARD) && !testCollisionWithBoxes(FORWARD))
             {
                 player.moveForward();
             }
         }
         if (isAPressed)
         {
-            if (!testCollisionWithWalls(LEFT))
+            if (!testCollisionWithWalls(LEFT) && !testCollisionWithBoxes(LEFT))
             {
                 player.moveLeft();
             }
@@ -378,14 +403,14 @@ int main()
 
         if (isSPressed)
         {
-            if (!testCollisionWithWalls(BACKWARD))
+            if (!testCollisionWithWalls(BACKWARD) && !testCollisionWithBoxes(BACKWARD))
             {
                 player.moveBackward();
             }
         }
         if (isDPressed)
         {
-            if (!testCollisionWithWalls(RIGHT))
+            if (!testCollisionWithWalls(RIGHT) && !testCollisionWithBoxes(RIGHT))
             {
                 player.moveRight();
             }
