@@ -96,6 +96,13 @@ struct RectangularObject
 
 RectangularObject makeBox(float x, float z);
 
+enum DIRECTION {
+    FORWARD,
+    BACKWARD,
+    LEFT,
+    RIGHT
+};
+
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
 
 // A cena virtual é uma lista de objetos nomeados, guardados em um dicionário
@@ -175,8 +182,6 @@ std::vector<RectangularObject> walls = {
 // Quanto maior Y, mais pra cima
 // Quanto maior Z, mais pra trás
 
-float ground = -2.0f;
-float cube_edge = 3.0f;
 std::vector<RectangularObject> boxes = {
     makeBox(-3, 10),
     makeBox(-5,15),
@@ -197,6 +202,25 @@ bool isAPressed = false;
 bool isSPressed = false;
 bool isDPressed = false;
 bool isRPressed = false;
+
+bool canMove(DIRECTION direction)
+{
+    
+    return false;
+}
+
+
+bool testCollisionWithWalls(RectangularObject object)
+{
+    for (int i = 0; i < walls.size(); i++)
+    {
+        if (pos[0] == walls[i].x)
+        {
+            return true;
+        }
+    }
+    return true;
+}
 
 int main()
 {
@@ -332,7 +356,10 @@ int main()
 
         if (isWPressed)
         {
-            camera.moveForward();
+            if (canMove(FORWARD))
+            {
+                camera.moveForward();
+            }
         }
         if (isAPressed)
         {
