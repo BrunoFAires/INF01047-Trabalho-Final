@@ -105,11 +105,18 @@ struct RectangularObject
 
     Hitbox getHitbox()
     {
-        return {
+        Hitbox hitbox = {
             .x1 = x - width/2.0f, .x2 = x + width/2.0f,
             .y1 = y - height/2.0f, .y2 = y + height/2.0f,
             .z1 = z - depth/2.0f, .z2 = z + depth/2.0f,
         };
+
+        if (rotation != 0)
+        {
+            hitbox.rotate(rotation);
+        }
+
+        return hitbox;
     };
 
     void move(DIRECTION direction, glm::vec4 viewVector, float qty = 1.0f)
@@ -277,6 +284,17 @@ bool testCollisionWithWalls(DIRECTION direction)
     return false;
 }
 
+void testCheckpoints(RectangularObject object)
+{
+    for (int i = 0; i < checkpoints.size(); i++)
+    {
+        if (hitboxesCollide(object.getHitbox(), checkpoints[i].getHitbox()))
+        {
+            printf("Box reached checkpoint!\n");
+        }
+    }
+}
+
 bool testCollisionWithBoxes(DIRECTION direction)
 {
     Player* player_clone = player.clone();
@@ -295,6 +313,7 @@ bool testCollisionWithBoxes(DIRECTION direction)
         {
             printf("Collision with box!\n");
             boxes[i].move(direction, player.getCamera().getViewVector());
+            testCheckpoints(boxes[i]);
             return true;
         }
     }
