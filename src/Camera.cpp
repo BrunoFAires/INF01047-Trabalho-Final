@@ -1,10 +1,11 @@
 #include "Camera.h"
 #include "matrices.h"
 
-Camera::Camera(float theta, float phi, float distance, float x, float y, float z)
+Camera::Camera(float theta, float phi, float angle, float distance, float x, float y, float z)
 {
     g_CameraTheta = theta;
     g_CameraPhi = phi;
+    this->angle = angle;
     g_CameraDistance = distance;
     positionVector.x = x;
     positionVector.y = y;
@@ -65,30 +66,28 @@ void Camera::setPosition(float x, float y, float z)
 
 void Camera::moveForward()
 {
-    positionVector.x += velocity * viewVector.x;
-    positionVector.y += velocity * viewVector.y;
-    positionVector.z += velocity * viewVector.z;
+    positionVector.x += (viewVector.x);
+    positionVector.z += (viewVector.z);
 }
 
 void Camera::moveBackward()
 {
-    positionVector.x -= velocity * viewVector.x;
-    positionVector.y -= velocity * viewVector.y;
-    positionVector.z -= velocity * viewVector.z;
+    positionVector.x -= (viewVector.x);
+    positionVector.z -= (viewVector.z);
 }
 
 void Camera::moveLeft()
 {
     glm::vec4 cameraAux = Matrix_Rotate_Y(1.5708) * viewVector;
-    positionVector.x += velocity * cameraAux.x;
-    positionVector.z += velocity * cameraAux.z;
+    positionVector.x += (cameraAux.x);
+    positionVector.z += (cameraAux.z);
 }
 
 void Camera::moveRight()
 {
     glm::vec4 cameraAux = Matrix_Rotate_Y(1.5708) * viewVector;
-    positionVector.x -= velocity * cameraAux.x;
-    positionVector.z -= velocity * cameraAux.z;
+    positionVector.x -= (cameraAux.x);
+    positionVector.z -= (cameraAux.z);
 }
 
 void Camera::updatePosition()
@@ -101,7 +100,7 @@ void Camera::updatePosition()
 void Camera::updateView()
 {
     float r = g_CameraDistance;
-    float y = r * sin(g_CameraPhi);
+    float y = r * sin(g_CameraPhi - angle);
     float z = r * cos(g_CameraPhi) * cos(g_CameraTheta);
     float x = r * cos(g_CameraPhi) * sin(g_CameraTheta);
 

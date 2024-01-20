@@ -24,7 +24,8 @@ public:
     void moveLeft();
     void moveRight();
     void restart();
-    Player* clone();
+    Player *clone();
+    void setPositionVector(glm::vec4 vector);
 };
 
 #endif // PLAYER_H

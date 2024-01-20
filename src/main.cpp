@@ -43,7 +43,7 @@
 #include "Player.h"
 #include "collision.h"
 
-#define MOVE_CAM_WO_BUTTON true
+#define MOVE_CAM_WO_BUTTON false
 
 // Declaração de funções utilizadas para pilha de matrizes de modelagem.
 void PushMatrix(glm::mat4 M);
@@ -81,7 +81,8 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow *window, double xpos, double ypos);
 void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 
-enum DIRECTION {
+enum DIRECTION
+{
     FORWARD,
     BACKWARD,
     LEFT,
@@ -106,9 +107,12 @@ struct RectangularObject
     Hitbox getHitbox()
     {
         Hitbox hitbox = {
-            .x1 = x - width/2.0f, .x2 = x + width/2.0f,
-            .y1 = y - height/2.0f, .y2 = y + height/2.0f,
-            .z1 = z - depth/2.0f, .z2 = z + depth/2.0f,
+            .x1 = x - width / 2.0f,
+            .x2 = x + width / 2.0f,
+            .y1 = y - height / 2.0f,
+            .y2 = y + height / 2.0f,
+            .z1 = z - depth / 2.0f,
+            .z2 = z + depth / 2.0f,
         };
 
         if (rotation != 0)
@@ -124,30 +128,29 @@ struct RectangularObject
         float velocity = 0.02f;
         glm::vec4 cameraAux = Matrix_Rotate_Y(1.5708) * viewVector;
 
-        switch (direction) {
-            case FORWARD:
-                x += velocity * viewVector.x;
-                z += velocity * viewVector.z;
-                break;
-            case BACKWARD:
-                x -= velocity * viewVector.x;
-                z -= velocity * viewVector.z;
-                break;
-            case LEFT:
-                x += velocity * cameraAux.x;
-                z += velocity * cameraAux.z;
-                break;
-            case RIGHT:
-                x -= velocity * cameraAux.x;
-                z -= velocity * cameraAux.z;
-                break;
+        switch (direction)
+        {
+        case FORWARD:
+            x += velocity * viewVector.x;
+            z += velocity * viewVector.z;
+            break;
+        case BACKWARD:
+            x -= velocity * viewVector.x;
+            z -= velocity * viewVector.z;
+            break;
+        case LEFT:
+            x += velocity * cameraAux.x;
+            z += velocity * cameraAux.z;
+            break;
+        case RIGHT:
+            x -= velocity * cameraAux.x;
+            z -= velocity * cameraAux.z;
+            break;
         }
     }
 };
 
 RectangularObject makeBox(float x, float z);
-
-
 
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
 
@@ -173,9 +176,8 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // usuário através do mouse (veja função CursorPosCallback()). A posição
 // efetiva da câmera é calculada dentro da função main(), dentro do loop de
 // renderização.
-// Player player(19.5f, -2, 33.5);
-Player player(1, -2, 28.5);
-Camera cameraLookAt(3.13, 2.0f, 50, 10.f, 60, 40);
+Player player(20.f, 0, 32);
+Camera cameraLookAt(3.13, 2.0f, 0, 50, 10.f, 60, 40);
 bool lookAt = true;
 
 // Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
@@ -187,11 +189,9 @@ bool g_ShowInfoText = true;
 // Variáveis que definem um programa de GPU (shaders). Veja função LoadShadersFromFiles().
 GLuint g_GpuProgramID = 0;
 
-/* Walls */
-
-// float wallDepth = 1.0f;
-// float wallWidth = 20.0f;
-// float wallHeight = 5.0f;
+float wallDepth = 1.0f;
+float wallWidth = 20.0f;
+float wallHeight = 5.0f;
 
 std::vector<RectangularObject> walls = {
     {.width = 20, .height = 5, .depth = 4, .x = 0, .y = 0, .z = 0, .rotation = 0},
@@ -223,17 +223,16 @@ std::vector<RectangularObject> walls = {
 RectangularObject makeBox(float x, float z)
 {
     float ground = -3.0f;
-    float cube_edge = 2.0f;
+    float cube_edge = 4.0f;
 
-    return {.width = cube_edge, .height = cube_edge, .depth = cube_edge, .x = x, .y = ground, .z = z, .rotation = 0};
+    return {.width = cube_edge, .height = cube_edge / 2, .depth = cube_edge, .x = x, .y = ground, .z = z, .rotation = 0};
 };
 
 std::vector<RectangularObject> boxes = {
     makeBox(-3, 10),
-    makeBox(-5,25),
-    makeBox(1,14),
-    makeBox(-10,18)
-};
+    makeBox(-5, 25),
+    makeBox(1, 14),
+    makeBox(-10, 18)};
 
 /* Checkpoints */
 
@@ -247,10 +246,9 @@ RectangularObject makeCheckpoint(float x, float z)
 
 std::vector<RectangularObject> checkpoints = {
     makeCheckpoint(-1, 5),
-    makeCheckpoint(-3,20),
-    makeCheckpoint(5,8),
-    makeCheckpoint(-15,23)
-};
+    makeCheckpoint(-3, 20),
+    makeCheckpoint(5, 8),
+    makeCheckpoint(-15, 23)};
 
 /* */
 
@@ -263,14 +261,18 @@ bool isCPressed = false;
 
 bool testCollisionWithWalls(DIRECTION direction)
 {
-    Player* player_clone = player.clone();
+    Player *player_clone = player.clone();
 
     switch (direction)
     {
-    case FORWARD: player_clone->moveForward();
-    case LEFT: player_clone->moveLeft();
-    case RIGHT: player_clone->moveRight();
-    case BACKWARD: player_clone->moveBackward();
+    case FORWARD:
+        player_clone->moveForward();
+    case LEFT:
+        player_clone->moveLeft();
+    case RIGHT:
+        player_clone->moveRight();
+    case BACKWARD:
+        player_clone->moveBackward();
     }
 
     for (int i = 0; i < walls.size(); i++)
@@ -297,14 +299,18 @@ void testCheckpoints(RectangularObject object)
 
 bool testCollisionWithBoxes(DIRECTION direction)
 {
-    Player* player_clone = player.clone();
+    Player *player_clone = player.clone();
 
     switch (direction)
     {
-    case FORWARD: player_clone->moveForward();
-    case LEFT: player_clone->moveLeft();
-    case RIGHT: player_clone->moveRight();
-    case BACKWARD: player_clone->moveBackward();
+    case FORWARD:
+        player_clone->moveForward();
+    case LEFT:
+        player_clone->moveLeft();
+    case RIGHT:
+        player_clone->moveRight();
+    case BACKWARD:
+        player_clone->moveBackward();
     }
 
     for (int i = 0; i < boxes.size(); i++)
@@ -449,41 +455,6 @@ int main()
         player.getCamera().updateView();
         cameraLookAt.updateView();
 
-        if (isWPressed)
-        {
-            if (!testCollisionWithWalls(FORWARD) && !testCollisionWithBoxes(FORWARD))
-            {
-                player.moveForward();
-            }
-        }
-        if (isAPressed)
-        {
-            if (!testCollisionWithWalls(LEFT) && !testCollisionWithBoxes(LEFT))
-            {
-                player.moveLeft();
-            }
-        }
-
-        if (isSPressed)
-        {
-            if (!testCollisionWithWalls(BACKWARD) && !testCollisionWithBoxes(BACKWARD))
-            {
-                player.moveBackward();
-            }
-        }
-        if (isDPressed)
-        {
-            if (!testCollisionWithWalls(RIGHT) && !testCollisionWithBoxes(RIGHT))
-            {
-                player.moveRight();
-            }
-        }
-
-        if (isRPressed)
-        {
-            player.restart();
-        }
-
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
         // glm::vec4 camera_position_c = glm::vec4(x, y, z, 1.0f);                 // Ponto "c", centro da câmera
@@ -504,7 +475,7 @@ int main()
         glm::mat4 projection;
 
         // Note que, no sistema de coordenadas da câmera, os planos near e far
-        // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.Ftest
+        // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
         float nearplane = -0.1f;  // Posição do "near plane"
         float farplane = -100.0f; // Posição do "far plane"
 
@@ -551,11 +522,14 @@ int main()
             model = Matrix_Identity();
         }
 
-        /* Draw boxes */
+        glm::mat4 playerM = Matrix_Identity();
+        playerM = playerM * Matrix_Translate(player.getPositionVector().x, player.getPositionVector().y, player.getPositionVector().z);
+        playerM = playerM * Matrix_Scale(4, 4, 4);
+        glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(playerM));
+        DrawCube(render_as_black_uniform);
         for (int i = 0; i < boxes.size(); i++)
         {
             model = Matrix_Identity();
-
             RectangularObject box = boxes[i];
 
             model = model * Matrix_Translate(box.x, box.y, box.z);
@@ -1069,6 +1043,8 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
     if (g_LeftMouseButtonPressed || MOVE_CAM_WO_BUTTON)
     {
         float dx = xpos - g_LastCursorPosX;
+        float dy = ypos - g_LastCursorPosY;
+        float rotationIncrement = 90.0f; //
         if (lookAt)
         {
             cameraLookAt.setCameraTheta(0.01f * dx);
@@ -1077,9 +1053,17 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
         {
 
             // Atualizamos parâmetros da câmera com os deslocamentos
-            player.getCamera().setCameraTheta(0.01f * dx);
+            // player.getCamera().setCameraTheta(rotationIncrement * (dx / 90.0f));
             // player.getCamera().setCameraPhi(0.01f * dy); //TODO aparentemente há um bug quando move a camera verticalmente. De qualquer forma, a princípio, não vamos deixar mover nessa direção.
         }
+        float phimax = 3.141592f / 2;
+        float phimin = -phimax;
+
+        /* if (cameraLookAt.getCameraPhi() > phimax)
+            cameraLookAt.setCameraPhi(phimax);
+
+        else if (cameraLookAt.getCameraPhi() < phimin)
+            cameraLookAt.setCameraPhi(phimax); */
         g_LastCursorPosX = xpos;
         g_LastCursorPosY = ypos;
     }
@@ -1122,7 +1106,6 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     //   Se apertar tecla shift+Y então g_AngleY -= delta;
     //   Se apertar tecla Z       então g_AngleZ += delta;
     //   Se apertar tecla shift+Z então g_AngleZ -= delta;
-
     // Se o usuário apertar a tecla H, fazemos um "toggle" do texto informativo mostrado na tela.
     if (key == GLFW_KEY_H && action == GLFW_PRESS)
     {
@@ -1131,51 +1114,40 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_W && action == GLFW_PRESS)
     {
         isWPressed = true;
+        player.moveForward();
     }
 
-    if (key == GLFW_KEY_W && action == GLFW_RELEASE)
+    if (key == GLFW_KEY_W && action == GLFW_RELEASE && !testCollisionWithWalls(FORWARD) && !testCollisionWithBoxes(FORWARD))
     {
         isWPressed = false;
     }
 
-    if (key == GLFW_KEY_A && action == GLFW_PRESS)
+    if (key == GLFW_KEY_A && action == GLFW_PRESS && !testCollisionWithWalls(LEFT) && !testCollisionWithBoxes(LEFT))
     {
         isAPressed = true;
+        player.moveLeft();
     }
 
-    if (key == GLFW_KEY_A && action == GLFW_RELEASE)
-    {
-        isAPressed = false;
-    }
-
-    if (key == GLFW_KEY_S && action == GLFW_PRESS)
+    if (key == GLFW_KEY_S && action == GLFW_PRESS && !testCollisionWithWalls(BACKWARD) && !testCollisionWithBoxes(BACKWARD))
     {
         isSPressed = true;
+        player.moveBackward();
     }
 
-    if (key == GLFW_KEY_S && action == GLFW_RELEASE)
-    {
-        isSPressed = false;
-    }
-
-    if (key == GLFW_KEY_D && action == GLFW_PRESS)
+    if (key == GLFW_KEY_D && action == GLFW_PRESS && !testCollisionWithWalls(RIGHT) && !testCollisionWithBoxes(RIGHT))
     {
         isDPressed = true;
+        player.moveRight();
     }
 
-    if (key == GLFW_KEY_D && action == GLFW_RELEASE)
+    if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)
     {
-        isDPressed = false;
+        player.getCamera().setCameraTheta(-M_PI / 180 * 90);
     }
 
-    if (key == GLFW_KEY_R && action == GLFW_PRESS)
+    if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS)
     {
-        isRPressed = true;
-    }
-
-    if (key == GLFW_KEY_R && action == GLFW_RELEASE)
-    {
-        isRPressed = false;
+        player.getCamera().setCameraTheta(M_PI / 180 * 90);
     }
 
     if (key == GLFW_KEY_C && action == GLFW_PRESS)
@@ -1294,7 +1266,7 @@ void TextRendering_FreeCamera(GLFWwindow *window, Camera *camera)
     float pad = TextRendering_LineHeight(window);
 
     char buffer[80];
-    snprintf(buffer, 80, "Camera info = Theta: (%.2f) Phi: (%.2f) Distance: (%.2f) x: (%.2f) y: (%.2f) : (%.2f)\n",
+    snprintf(buffer, 80, "Camera info = Theta: (%.2f) Phi: (%.2f) Distance: (%.2f) x: (%.2f) y: (%.2f) \: (%.2f)\n",
              camera->getCameraTheta(), camera->getCameraPhi(), camera->getCameraDistance(),
              camera->getPositionVector().x, camera->getPositionVector().y, camera->getPositionVector().z);
 

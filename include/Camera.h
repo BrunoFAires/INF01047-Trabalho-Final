@@ -6,17 +6,18 @@
 class Camera
 {
 private:
-    float g_CameraTheta = 0.0f;                       // Ângulo no plano ZX em relação ao eixo Z
-    float g_CameraPhi = 0.0f;                         // Ângulo em relação ao eixo Y
-    float g_CameraDistance = 30.5f;                   // Distância da câmera para a origem
+    float g_CameraTheta = 0.0f; // Ângulo no plano ZX em relação ao eixo Z
+    float g_CameraPhi = 0.0f;
+    float angle = 0.0f;                               // Ângulo em relação ao eixo Y
+    float g_CameraDistance = 0;                       // Distância da câmera para a origem
     float g_CurrentCameraDistance = g_CameraDistance; // Distância da câmera para a origem
     glm::vec4 positionVector = glm::vec4(0, 0, 0, 1.0f);
     glm::vec4 viewVector = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
     glm::vec4 upVector = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
-    float velocity = 0.02;
+    float velocity = 4;
 
 public:
-    Camera(float theta, float phi, float distance, float x, float y, float z);
+    Camera(float theta, float phi, float angle, float distance, float x, float y, float z);
     float getCameraTheta();
     float getCameraPhi();
     float getCameraDistance();

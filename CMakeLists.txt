@@ -11,6 +11,7 @@ set(SOURCES
   src/glad.c
   src/Camera.cpp
   src/Player.cpp
+  src/collision.cpp
 )
 
 cmake_minimum_required(VERSION 3.5.0)
