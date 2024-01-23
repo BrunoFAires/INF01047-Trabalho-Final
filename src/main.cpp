@@ -81,13 +81,7 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow *window, double xpos, double ypos);
 void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 
-enum DIRECTION
-{
-    FORWARD,
-    BACKWARD,
-    LEFT,
-    RIGHT
-};
+
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
@@ -99,56 +93,6 @@ struct SceneObject
     GLenum rendering_mode; // Modo de rasterização (GL_TRIANGLES, GL_TRIANGLE_STRIP, etc.)
 };
 
-struct RectangularObject
-{
-    float width, height, depth, x, y, z;
-    int rotation;
-
-    Hitbox getHitbox()
-    {
-        Hitbox hitbox = {
-            .x1 = x - width / 2.0f,
-            .x2 = x + width / 2.0f,
-            .y1 = y - height / 2.0f,
-            .y2 = y + height / 2.0f,
-            .z1 = z - depth / 2.0f,
-            .z2 = z + depth / 2.0f,
-        };
-
-        if (rotation != 0)
-        {
-            hitbox.rotate(rotation);
-        }
-
-        return hitbox;
-    };
-
-    void move(DIRECTION direction, glm::vec4 viewVector, float qty = 1.0f)
-    {
-        float velocity = 0.02f;
-        glm::vec4 cameraAux = Matrix_Rotate_Y(1.5708) * viewVector;
-
-        switch (direction)
-        {
-        case FORWARD:
-            x += velocity * viewVector.x;
-            z += velocity * viewVector.z;
-            break;
-        case BACKWARD:
-            x -= velocity * viewVector.x;
-            z -= velocity * viewVector.z;
-            break;
-        case LEFT:
-            x += velocity * cameraAux.x;
-            z += velocity * cameraAux.z;
-            break;
-        case RIGHT:
-            x -= velocity * cameraAux.x;
-            z -= velocity * cameraAux.z;
-            break;
-        }
-    }
-};
 
 RectangularObject makeBox(float x, float z);
 
@@ -229,10 +173,11 @@ RectangularObject makeBox(float x, float z)
 };
 
 std::vector<RectangularObject> boxes = {
-    makeBox(-3, 10),
-    makeBox(-5, 25),
-    makeBox(1, 14),
-    makeBox(-10, 18)};
+    makeBox(-4, 12),
+    makeBox(-8, 24),
+    makeBox(0, 12),
+    makeBox(-8, 16)
+};
 
 /* Checkpoints */
 
@@ -267,17 +212,21 @@ bool testCollisionWithWalls(DIRECTION direction)
     {
     case FORWARD:
         player_clone->moveForward();
+        break;
     case LEFT:
         player_clone->moveLeft();
+        break;
     case RIGHT:
         player_clone->moveRight();
+        break;
     case BACKWARD:
         player_clone->moveBackward();
+        break;
     }
 
     for (int i = 0; i < walls.size(); i++)
     {
-        if (hitboxesCollide(player_clone->getHitbox(), walls[i].getHitbox()))
+        if (testCollision(player_clone->asRectangularObject(), walls[i]))
         {
             printf("Collision with wall!\n");
             return true;
@@ -290,40 +239,25 @@ void testCheckpoints(RectangularObject object)
 {
     for (int i = 0; i < checkpoints.size(); i++)
     {
-        if (hitboxesCollide(object.getHitbox(), checkpoints[i].getHitbox()))
+        if (testCollision(object, checkpoints[i]))
         {
             printf("Box reached checkpoint!\n");
         }
     }
 }
 
-bool testCollisionWithBoxes(DIRECTION direction)
-{
-    Player *player_clone = player.clone();
-
-    switch (direction)
-    {
-    case FORWARD:
-        player_clone->moveForward();
-    case LEFT:
-        player_clone->moveLeft();
-    case RIGHT:
-        player_clone->moveRight();
-    case BACKWARD:
-        player_clone->moveBackward();
-    }
-
+void testCollisionWithBoxes(DIRECTION direction)
+{   
     for (int i = 0; i < boxes.size(); i++)
     {
-        if (hitboxesCollide(player_clone->getHitbox(), boxes[i].getHitbox()))
+        if (testCollision(player.asRectangularObject(), boxes[i]))
         {
             printf("Collision with box!\n");
             boxes[i].move(direction, player.getCamera().getViewVector());
             testCheckpoints(boxes[i]);
-            return true;
+            return;
         }
     }
-    return false;
 }
 
 int main()
@@ -506,57 +440,36 @@ int main()
 
         glm::mat4 model = Matrix_Identity(); // Transformação inicial = identidade.
 
+        /* Draw wall */
         for (int i = 0; i < walls.size(); i++)
         {
             RectangularObject wall = walls[i];
 
-            model = model * Matrix_Translate(wall.x, wall.y, wall.z);
-
-            model = model                                           // Atualizamos matriz model (multiplicação à direita) com a rotação do braço direito
-                    * Matrix_Rotate_Z(0.0f)                         // TERCEIRO rotação Z de Euler
-                    * Matrix_Rotate_Y((M_PI) / 180 * wall.rotation) // SEGUNDO rotação Y de Euler
-                    * Matrix_Rotate_X(0.0f);
-            model = model * Matrix_Scale(wall.width, wall.height, wall.depth);
+            model = wall.getModelMatrix();
             glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             DrawCube(render_as_black_uniform);
             model = Matrix_Identity();
         }
 
-        glm::mat4 playerM = Matrix_Identity();
-        playerM = playerM * Matrix_Translate(player.getPositionVector().x, player.getPositionVector().y, player.getPositionVector().z);
-        playerM = playerM * Matrix_Scale(4, 4, 4);
+        /* Draw player */
+        glm::mat4 playerM = player.asRectangularObject().getModelMatrix();
         glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(playerM));
         DrawCube(render_as_black_uniform);
+
+        /* Draw boxes */
         for (int i = 0; i < boxes.size(); i++)
         {
-            model = Matrix_Identity();
-            RectangularObject box = boxes[i];
-
-            model = model * Matrix_Translate(box.x, box.y, box.z);
-
-            model = model * Matrix_Rotate_Y((M_PI) / 180 * box.rotation);
-            PushMatrix(model);
-            model = model * Matrix_Scale(box.width, box.height, box.depth);
+            model = boxes[i].getModelMatrix();
             glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             DrawCube(render_as_black_uniform);
-            PopMatrix(model);
         }
 
         /* Draw checkpoints */
         for (int i = 0; i < checkpoints.size(); i++)
         {
-            model = Matrix_Identity();
-
-            RectangularObject checkpoint = checkpoints[i];
-
-            model = model * Matrix_Translate(checkpoint.x, checkpoint.y, checkpoint.z);
-
-            model = model * Matrix_Rotate_Y((M_PI) / 180 * checkpoint.rotation);
-            PushMatrix(model);
-            model = model * Matrix_Scale(checkpoint.width, checkpoint.height, checkpoint.depth);
+            model = checkpoints[i].getModelMatrix();
             glUniformMatrix4fv(model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             DrawCube(render_as_black_uniform);
-            PopMatrix(model);
         }
 
         // Neste ponto a matriz model recuperada é a matriz inicial (translação do torso)
@@ -1111,33 +1024,32 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     {
         g_ShowInfoText = !g_ShowInfoText;
     }
-    if (key == GLFW_KEY_W && action == GLFW_PRESS)
+    if (key == GLFW_KEY_W && action == GLFW_PRESS && !testCollisionWithWalls(FORWARD))
     {
         isWPressed = true;
         player.moveForward();
+        testCollisionWithBoxes(FORWARD);
     }
 
-    if (key == GLFW_KEY_W && action == GLFW_RELEASE && !testCollisionWithWalls(FORWARD) && !testCollisionWithBoxes(FORWARD))
-    {
-        isWPressed = false;
-    }
-
-    if (key == GLFW_KEY_A && action == GLFW_PRESS && !testCollisionWithWalls(LEFT) && !testCollisionWithBoxes(LEFT))
+    if (key == GLFW_KEY_A && action == GLFW_PRESS && !testCollisionWithWalls(LEFT))
     {
         isAPressed = true;
         player.moveLeft();
+        testCollisionWithBoxes(LEFT);
     }
 
-    if (key == GLFW_KEY_S && action == GLFW_PRESS && !testCollisionWithWalls(BACKWARD) && !testCollisionWithBoxes(BACKWARD))
+    if (key == GLFW_KEY_S && action == GLFW_PRESS && !testCollisionWithWalls(BACKWARD))
     {
         isSPressed = true;
         player.moveBackward();
+        testCollisionWithBoxes(BACKWARD);
     }
 
-    if (key == GLFW_KEY_D && action == GLFW_PRESS && !testCollisionWithWalls(RIGHT) && !testCollisionWithBoxes(RIGHT))
+    if (key == GLFW_KEY_D && action == GLFW_PRESS && !testCollisionWithWalls(RIGHT))
     {
         isDPressed = true;
         player.moveRight();
+        testCollisionWithBoxes(RIGHT);
     }
 
     if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)

@@ -13,17 +13,17 @@ Camera &Player::getCamera()
     return *camera;
 }
 
-Hitbox Player::getHitbox()
+RectangularObject Player::asRectangularObject()
 {
-    glm::vec4 pos = getCamera().getPositionVector();
-    float playerWidth = 4.0f;
+    float player_size = 3.5f;
     return {
-        .x1 = pos.x - playerWidth / 2.0f,
-        .x2 = pos.x + playerWidth / 2.0f,
-        .y1 = pos.y - playerWidth / 2.0f,
-        .y2 = pos.y + playerWidth / 2.0f,
-        .z1 = pos.z - playerWidth / 2.0f,
-        .z2 = pos.z + playerWidth / 2.0f,
+        .width = player_size,
+        .height = player_size,
+        .depth = player_size,
+        .x = positionVector.x,
+        .y = -2.0f,
+        .z = positionVector.z,
+        .rotation = 0
     };
 }
 
@@ -71,8 +71,6 @@ void Player::restart()
 Player *Player::clone()
 {
     Player *newPlayer = new Player(positionVector.x, positionVector.y, positionVector.z);
-
-    *(newPlayer->camera) = *camera;
-
+    newPlayer->camera = new Camera(0.0f, 0.0f, 5, 4, camera->getPositionVector().x, camera->getPositionVector().y, camera->getPositionVector().z);
     return newPlayer;
 }

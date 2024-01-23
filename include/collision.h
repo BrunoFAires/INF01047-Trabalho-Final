@@ -1,55 +1,64 @@
 #include <string>
 #include <cmath>
 #include <algorithm>
+#include <glm/mat4x4.hpp>
+#include <glm/vec4.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include "matrices.h"
 
 #ifndef HITBOX_H
 #define HITBOX_H
 
-struct Hitbox
+enum DIRECTION
 {
-    float x1, x2;
-    float y1, y2;
-    float z1, z2;
+    FORWARD,
+    BACKWARD,
+    LEFT,
+    RIGHT
+};
 
-    void print() const {
-        printf(
-            "Hitbox: { x1: %.2f, x2: %.2f, y1: %.2f, y2: %.2f, z1: %.2f, z2: %.2f }\n",
-            x1, x2, y1, y2, z1, z2
-        );
+struct RectangularObject
+{
+    float width, height, depth, x, y, z;
+    int rotation;
+
+    glm::mat4 getModelMatrix()
+    {
+        glm::mat4 model = Matrix_Identity();
+        model = model * Matrix_Translate(x, y, z);
+        // model = model * Matrix_Rotate_Y((M_PI) / 180 * rotation);
+        model = model * Matrix_Scale(width, height, depth);
+        return model;
     }
 
-    void rotate(int rotation) {
-        float rad = rotation * M_PI / 180.0f;
+    void move(DIRECTION direction, glm::vec4 viewVector, float qty = 1.0f)
+    {
+        float velocity = 1.0f;
+        glm::vec4 cameraAux = Matrix_Rotate_Y(1.5708) * viewVector;
 
-        float centerX = (x1 + x2) / 2.0f;
-        float centerZ = (z1 + z2) / 2.0f;
-
-        float cornersX[4] = {x1, x2, x2, x1};
-        float cornersZ[4] = {z1, z1, z2, z2};
-
-        for (int i = 0; i < 4; ++i) {
-            float x = cornersX[i] - centerX;
-            float z = cornersZ[i] - centerZ;
-
-            cornersX[i] = cos(rad) * x - sin(rad) * z + centerX;
-            cornersZ[i] = sin(rad) * x + cos(rad) * z + centerZ;
-        }
-
-        x1 = cornersX[0];
-        x2 = cornersX[0];
-        z1 = cornersZ[0];
-        z2 = cornersZ[0];
-
-        // Finding the min and max X and Z
-        for (int i = 1; i < 4; ++i) {
-            if (cornersX[i] < x1) x1 = cornersX[i];
-            if (cornersX[i] > x2) x2 = cornersX[i];
-            if (cornersZ[i] < z1) z1 = cornersZ[i];
-            if (cornersZ[i] > z2) z2 = cornersZ[i];
+        switch (direction)
+        {
+        case FORWARD:
+            x += velocity * viewVector.x;
+            z += velocity * viewVector.z;
+            break;
+        case BACKWARD:
+            x -= velocity * viewVector.x;
+            z -= velocity * viewVector.z;
+            break;
+        case LEFT:
+            x += velocity * cameraAux.x;
+            z += velocity * cameraAux.z;
+            break;
+        case RIGHT:
+            x -= velocity * cameraAux.x;
+            z -= velocity * cameraAux.z;
+            break;
         }
     }
 };
 
 #endif
 
-bool hitboxesCollide(const Hitbox& hitbox1, const Hitbox& hitbox2);
+bool testCollision(RectangularObject obj1, RectangularObject obj2);
+void printMatrix(const glm::mat4& matrix);

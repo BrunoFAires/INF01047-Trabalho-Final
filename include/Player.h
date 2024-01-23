@@ -17,7 +17,6 @@ public:
     Player(float x, float y, float z);
     glm::vec4 getPositionVector();
     Camera &getCamera();
-    Hitbox getHitbox();
 
     void moveForward();
     void moveBackward();
@@ -26,6 +25,7 @@ public:
     void restart();
     Player *clone();
     void setPositionVector(glm::vec4 vector);
+    RectangularObject asRectangularObject();
 };
 
 #endif // PLAYER_H
