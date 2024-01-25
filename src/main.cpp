@@ -259,6 +259,26 @@ void testCheckpoints(RectangularObject object)
     }
 }
 
+bool testBoxCollisionWithBoxes(int box_id, DIRECTION direction, glm::vec4 view)
+{
+    RectangularObject box = boxes[box_id].clone();
+
+    box.move(direction, view);
+
+
+    for (int i = 0; i < boxes.size(); i++)
+    {
+        if (i == box_id)
+        {
+            continue;
+        }
+        if (testCollision(box, boxes[i]))
+        {
+            return true;
+        }
+    }
+}
+
 bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
 {
     Player *player_clone = player.clone();
@@ -279,14 +299,18 @@ bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
         break;
     }
 
+    glm::vec4 viewVector = player.getCamera().getViewVector();
+
     for (int i = 0; i < boxes.size(); i++)
     {
         if (testCollision(player_clone->asRectangularObject(), boxes[i]))
         {
             printf("Collision with box!\n");
-            if (!testCollisionWithWalls(boxes[i], direction, player.getCamera().getViewVector()))
+            bool didNotCollideWithWalls = !testCollisionWithWalls(boxes[i], direction, viewVector);
+            bool didNotCollideWithOtherBoxes = !testBoxCollisionWithBoxes(i, direction, viewVector);
+            if (didNotCollideWithWalls && didNotCollideWithOtherBoxes)
             {
-                boxes[i].move(direction, player.getCamera().getViewVector());
+                boxes[i].move(direction, viewVector);
                 testCheckpoints(boxes[i]);
                 return true;
             }
