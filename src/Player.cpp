@@ -23,8 +23,7 @@ RectangularObject Player::asRectangularObject()
         .x = positionVector.x,
         .y = -2.0f,
         .z = positionVector.z,
-        .rotation = 0
-    };
+        .rotation = rotation};
 }
 
 void Player::moveForward()
@@ -56,6 +55,18 @@ void Player::moveRight()
     positionVector.x = camera->getPositionVector().x;
 
     positionVector.z = camera->getPositionVector().z;
+}
+
+void Player::rotateLeft()
+{
+    camera->setCameraTheta(-M_PI / 180 * 90);
+    rotation += 90;
+}
+
+void Player::rotateRight()
+{
+    camera->setCameraTheta(M_PI / 180 * 90);
+    rotation -= 90;
 }
 
 glm::vec4 Player::getPositionVector()

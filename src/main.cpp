@@ -81,8 +81,6 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow *window, double xpos, double ypos);
 void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 
-
-
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
 struct SceneObject
@@ -92,7 +90,6 @@ struct SceneObject
     int num_indices;       // Número de índices do objeto dentro do vetor indices[] definido em BuildTriangles()
     GLenum rendering_mode; // Modo de rasterização (GL_TRIANGLES, GL_TRIANGLE_STRIP, etc.)
 };
-
 
 RectangularObject makeBox(float x, float z);
 
@@ -166,18 +163,17 @@ std::vector<RectangularObject> walls = {
 
 RectangularObject makeBox(float x, float z)
 {
-    float ground = -3.0f;
-    float cube_edge = 4.0f;
+    float ground = -1.5f;
+    float cube_edge = 3.5f;
 
-    return {.width = cube_edge, .height = cube_edge / 2, .depth = cube_edge, .x = x, .y = ground, .z = z, .rotation = 0};
+    return {.width = cube_edge, .height = cube_edge, .depth = cube_edge, .x = x, .y = ground, .z = z, .rotation = 0};
 };
 
 std::vector<RectangularObject> boxes = {
     makeBox(-4, 12),
     makeBox(-8, 24),
     makeBox(0, 12),
-    makeBox(-8, 16)
-};
+    makeBox(-8, 16)};
 
 /* Checkpoints */
 
@@ -204,7 +200,7 @@ bool isDPressed = false;
 bool isRPressed = false;
 bool isCPressed = false;
 
-bool testCollisionWithWalls(DIRECTION direction)
+bool testPlayerCollisionWithWalls(DIRECTION direction)
 {
     Player *player_clone = player.clone();
 
@@ -235,6 +231,23 @@ bool testCollisionWithWalls(DIRECTION direction)
     return false;
 }
 
+bool testCollisionWithWalls(RectangularObject obj, DIRECTION direction, glm::vec4 viewVector)
+{
+    RectangularObject obj_clone = obj.clone();
+
+    obj_clone.move(direction, viewVector);
+
+    for (int i = 0; i < walls.size(); i++)
+    {
+        if (testCollision(obj_clone, walls[i]))
+        {
+            printf("Object Collision with wall!\n");
+            return true;
+        }
+    }
+    return false;
+}
+
 void testCheckpoints(RectangularObject object)
 {
     for (int i = 0; i < checkpoints.size(); i++)
@@ -246,18 +259,44 @@ void testCheckpoints(RectangularObject object)
     }
 }
 
-void testCollisionWithBoxes(DIRECTION direction)
-{   
+bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
+{
+    Player *player_clone = player.clone();
+
+    switch (direction)
+    {
+    case FORWARD:
+        player_clone->moveForward();
+        break;
+    case LEFT:
+        player_clone->moveLeft();
+        break;
+    case RIGHT:
+        player_clone->moveRight();
+        break;
+    case BACKWARD:
+        player_clone->moveBackward();
+        break;
+    }
+
     for (int i = 0; i < boxes.size(); i++)
     {
-        if (testCollision(player.asRectangularObject(), boxes[i]))
+        if (testCollision(player_clone->asRectangularObject(), boxes[i]))
         {
             printf("Collision with box!\n");
-            boxes[i].move(direction, player.getCamera().getViewVector());
-            testCheckpoints(boxes[i]);
-            return;
+            if (!testCollisionWithWalls(boxes[i], direction, player.getCamera().getViewVector()))
+            {
+                boxes[i].move(direction, player.getCamera().getViewVector());
+                testCheckpoints(boxes[i]);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
+    return true;
 }
 
 int main()
@@ -289,7 +328,7 @@ int main()
     // Criamos uma janela do sistema operacional, com 800 colunas e 800 linhas
     // de pixels, e com título "INF01047 ...".
     GLFWwindow *window;
-    window = glfwCreateWindow(800, 800, "INF01047 - 00323680 - Bruno Ferreira Aires", NULL, NULL);
+    window = glfwCreateWindow(800, 800, "Sokoban 3D", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -593,11 +632,11 @@ void DrawCube(GLint render_as_black_uniform)
     // definida acima, e portanto sofrerão as mesmas transformações
     // geométricas que o cubo. Isto é, estes eixos estarão
     // representando o sistema de coordenadas do modelo (e não o global)!
-    glDrawElements(
-        g_VirtualScene["axes"].rendering_mode,
-        g_VirtualScene["axes"].num_indices,
-        GL_UNSIGNED_INT,
-        (void *)g_VirtualScene["axes"].first_index);
+    /*     glDrawElements(
+            g_VirtualScene["axes"].rendering_mode,
+            g_VirtualScene["axes"].num_indices,
+            GL_UNSIGNED_INT,
+            (void *)g_VirtualScene["axes"].first_index); */
 
     // Informamos para a placa de vídeo (GPU) que a variável booleana
     // "render_as_black" deve ser colocada como "true". Veja o arquivo
@@ -1024,42 +1063,50 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     {
         g_ShowInfoText = !g_ShowInfoText;
     }
-    if (key == GLFW_KEY_W && action == GLFW_PRESS && !testCollisionWithWalls(FORWARD))
+    if (key == GLFW_KEY_W && action == GLFW_PRESS && !testPlayerCollisionWithWalls(FORWARD))
     {
         isWPressed = true;
-        player.moveForward();
-        testCollisionWithBoxes(FORWARD);
+        if (shouldMoveAfterCollisionWithBoxes(FORWARD))
+        {
+            player.moveForward();
+        }
     }
 
-    if (key == GLFW_KEY_A && action == GLFW_PRESS && !testCollisionWithWalls(LEFT))
+    if (key == GLFW_KEY_A && action == GLFW_PRESS && !testPlayerCollisionWithWalls(LEFT))
     {
         isAPressed = true;
-        player.moveLeft();
-        testCollisionWithBoxes(LEFT);
+        if (shouldMoveAfterCollisionWithBoxes(LEFT))
+        {
+            player.moveLeft();
+        }
     }
 
-    if (key == GLFW_KEY_S && action == GLFW_PRESS && !testCollisionWithWalls(BACKWARD))
+    if (key == GLFW_KEY_S && action == GLFW_PRESS && !testPlayerCollisionWithWalls(BACKWARD))
     {
         isSPressed = true;
-        player.moveBackward();
-        testCollisionWithBoxes(BACKWARD);
+        if (shouldMoveAfterCollisionWithBoxes(BACKWARD))
+        {
+            player.moveBackward();
+        }
     }
 
-    if (key == GLFW_KEY_D && action == GLFW_PRESS && !testCollisionWithWalls(RIGHT))
+    if (key == GLFW_KEY_D && action == GLFW_PRESS && !testPlayerCollisionWithWalls(RIGHT))
     {
         isDPressed = true;
-        player.moveRight();
-        testCollisionWithBoxes(RIGHT);
+        if (shouldMoveAfterCollisionWithBoxes(RIGHT))
+        {
+            player.moveRight();
+        }
     }
 
     if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)
     {
-        player.getCamera().setCameraTheta(-M_PI / 180 * 90);
+        player.rotateLeft();
     }
 
     if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS)
     {
-        player.getCamera().setCameraTheta(M_PI / 180 * 90);
+        player.rotateRight();
     }
 
     if (key == GLFW_KEY_C && action == GLFW_PRESS)

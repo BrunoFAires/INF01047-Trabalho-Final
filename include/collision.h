@@ -26,7 +26,7 @@ struct RectangularObject
     {
         glm::mat4 model = Matrix_Identity();
         model = model * Matrix_Translate(x, y, z);
-        // model = model * Matrix_Rotate_Y((M_PI) / 180 * rotation);
+        model = model * Matrix_Rotate_Y((M_PI) / 180 * rotation);
         model = model * Matrix_Scale(width, height, depth);
         return model;
     }
@@ -56,9 +56,21 @@ struct RectangularObject
             break;
         }
     }
+
+    RectangularObject clone()
+    {
+        return {
+            .width = width,
+            .height = height,
+            .depth = depth,
+            .x = x,
+            .y = y,
+            .z = z,
+            .rotation = rotation};
+    };
 };
 
 #endif
 
 bool testCollision(RectangularObject obj1, RectangularObject obj2);
-void printMatrix(const glm::mat4& matrix);
+void printMatrix(const glm::mat4 &matrix);
