@@ -349,7 +349,7 @@ bool testPlayerCollisionWithWalls(DIRECTION direction)
 
     for (int i = 0; i < walls.size(); i++)
     {
-        if (testCollision(player_clone->asRectangularObject(), walls[i]))
+        if (testAABBColision(player_clone->asRectangularObject(), walls[i]))
         {
             printf("Collision with wall!\n");
             return true;
@@ -366,7 +366,7 @@ bool testCollisionWithWalls(RectangularObject obj, DIRECTION direction, glm::vec
 
     for (int i = 0; i < walls.size(); i++)
     {
-        if (testCollision(obj_clone, walls[i]))
+        if (testAABBColision(obj_clone, walls[i]))
         {
             printf("Object Collision with wall!\n");
             return true;
@@ -379,7 +379,7 @@ void testCheckpoints(RectangularObject object)
 {
     for (int i = 0; i < checkpoints.size(); i++)
     {
-        if (testCollision(object, checkpoints[i]))
+        if (testAABBColision(object, checkpoints[i]))
         {
             printf("Box reached checkpoint!\n");
         }
@@ -398,7 +398,7 @@ bool testBoxCollisionWithBoxes(int box_id, DIRECTION direction, glm::vec4 view)
         {
             continue;
         }
-        if (testCollision(box, boxes[i]))
+        if (testAABBColision(box, boxes[i]))
         {
             return true;
         }
@@ -429,14 +429,14 @@ bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
 
     for (int i = 0; i < boxes.size(); i++)
     {
-        if (testCollision(player_clone->asRectangularObject(), boxes[i]))
+        if (testAABBColision(player_clone->asRectangularObject(), boxes[i]))
         {
             printf("Collision with box!\n");
-            bool didNotCollideWithWalls = !testCollisionWithWalls(boxes[i], direction, viewVector);
-            bool didNotCollideWithOtherBoxes = !testBoxCollisionWithBoxes(i, direction, viewVector);
+            bool didNotCollideWithWalls = !testCollisionWithWalls(boxes[i], FORWARD, viewVector);
+            bool didNotCollideWithOtherBoxes = !testBoxCollisionWithBoxes(i, FORWARD, viewVector);
             if (didNotCollideWithWalls && didNotCollideWithOtherBoxes)
             {
-                boxes[i].move(direction, viewVector);
+                boxes[i].move(FORWARD, viewVector);
                 testCheckpoints(boxes[i]);
                 return true;
             }
@@ -892,15 +892,15 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     {
         g_ShowInfoText = !g_ShowInfoText;
     }
-    if (key == GLFW_KEY_W && action == GLFW_PRESS && !testPlayerCollisionWithWalls(FORWARD))
+    if (key == GLFW_KEY_W && action == GLFW_PRESS && !testPlayerCollisionWithWalls(player.getDirection()))
     {
-        if (shouldMoveAfterCollisionWithBoxes(FORWARD))
+        if (shouldMoveAfterCollisionWithBoxes(player.getDirection()))
         {
             player.moveForward();
         }
     }
 
-    if (key == GLFW_KEY_A && action == GLFW_PRESS && !testPlayerCollisionWithWalls(LEFT))
+    /* if (key == GLFW_KEY_A && action == GLFW_PRESS && !testPlayerCollisionWithWalls(LEFT))
     {
         if (shouldMoveAfterCollisionWithBoxes(LEFT))
         {
@@ -922,7 +922,7 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
         {
             player.moveRight();
         }
-    }
+    } */
 
     if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)
     {

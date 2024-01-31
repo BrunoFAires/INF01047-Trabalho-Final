@@ -1,6 +1,6 @@
 #include "collision.h"
 
-bool testCollision(RectangularObject obj1, RectangularObject obj2)
+bool testAABBColision(RectangularObject obj1, RectangularObject obj2)
 {
     glm::mat4 model1 = obj1.getModelMatrix();
     glm::mat4 model2 = obj2.getModelMatrix();
@@ -20,21 +20,9 @@ bool testCollision(RectangularObject obj1, RectangularObject obj2)
     glm::vec3 min2 = position2 - halfSize2;
     glm::vec3 max2 = position2 + halfSize2;
 
-    /*     if (obj1.rotation < 0 && obj1.rotation % 90 == 0)
-        {
-            min1 = position1 + halfSize1;
-            max1 = position1 - halfSize1;
-        } */
-
     bool overlapX = (min1.x < max2.x) && (max1.x > min2.x);
     bool overlapY = true;
     bool overlapZ = (min1.z < max2.z) && (max1.z > min2.z);
-
-    // if (overlapX && overlapY && overlapZ)
-    // {
-    //     printf("min1.x: %f <= max2.x: %f; max1.x: %f >= min2.x: %f\n", min1.x, max2.x, max1.x, min2.x);
-    //     printf("min1.z: %f <= max2.z: %f; max1.z: %f >= min2.z: %f\n", min1.z, max2.z, max1.z, min2.z);
-    // }
 
     return overlapX && overlapY && overlapZ;
 }

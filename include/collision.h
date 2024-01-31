@@ -72,5 +72,5 @@ struct RectangularObject
 
 #endif
 
-bool testCollision(RectangularObject obj1, RectangularObject obj2);
+bool testAABBColision(RectangularObject obj1, RectangularObject obj2);
 void printMatrix(const glm::mat4 &matrix);

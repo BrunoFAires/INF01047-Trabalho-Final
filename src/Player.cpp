@@ -61,12 +61,44 @@ void Player::rotateLeft()
 {
     camera->setCameraTheta(-M_PI / 180 * 90);
     rotation += 90;
+    if (direction == FORWARD)
+    {
+        direction = LEFT;
+    }
+    else if (direction == LEFT)
+    {
+        direction = BACKWARD;
+    }
+    else if (direction == BACKWARD)
+    {
+        direction = RIGHT;
+    }
+    else
+    {
+        direction = FORWARD;
+    }
 }
 
 void Player::rotateRight()
 {
     camera->setCameraTheta(M_PI / 180 * 90);
     rotation -= 90;
+    if (direction == FORWARD)
+    {
+        direction = RIGHT;
+    }
+    else if (direction == LEFT)
+    {
+        direction = FORWARD;
+    }
+    else if (direction == BACKWARD)
+    {
+        direction = LEFT;
+    }
+    else
+    {
+        direction = BACKWARD;
+    }
 }
 
 glm::vec4 Player::getPositionVector()
@@ -84,4 +116,9 @@ Player *Player::clone()
     Player *newPlayer = new Player(positionVector.x, positionVector.y, positionVector.z);
     newPlayer->camera = new Camera(0.0f, 0.0f, 5, 4, camera->getPositionVector().x, camera->getPositionVector().y, camera->getPositionVector().z);
     return newPlayer;
+}
+
+DIRECTION Player::getDirection()
+{
+    return direction;
 }

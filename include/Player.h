@@ -13,6 +13,7 @@ private:
     float velocity = 0.02;
     float rotation = 0;
     Camera *camera;
+    DIRECTION direction = FORWARD;
 
 public:
     Player(float x, float y, float z);
@@ -29,6 +30,7 @@ public:
     Player *clone();
     void setPositionVector(glm::vec4 vector);
     RectangularObject asRectangularObject();
+    DIRECTION getDirection();
 };
 
 #endif // PLAYER_H
