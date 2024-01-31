@@ -37,6 +37,7 @@
 #include <glm/vec4.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <tiny_obj_loader.h>
+#include <stb_image.h>
 
 // Headers locais, definidos na pasta "include/"
 #include "utils.h"
@@ -143,6 +144,7 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode
 void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow *window, double xpos, double ypos);
 void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
+void LoadTextureImage(const char *filename); // Função que carrega imagens de textura
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
@@ -153,6 +155,8 @@ struct SceneObject
     size_t num_indices;            // Número de índices do objeto dentro do vetor indices[] definido em BuildTrianglesAndAddToVirtualScene()
     GLenum rendering_mode;         // Modo de rasterização (GL_TRIANGLES, GL_TRIANGLE_STRIP, etc.)
     GLuint vertex_array_object_id; // ID do VAO onde estão armazenados os atributos do modelo
+    glm::vec3 bbox_min;            // Axis-Aligned Bounding Box do objeto
+    glm::vec3 bbox_max;
 };
 
 RectangularObject makeBox(float x, float z);
@@ -197,30 +201,87 @@ GLint g_model_uniform;
 GLint g_view_uniform;
 GLint g_projection_uniform;
 GLint g_object_id_uniform;
+GLint g_bbox_min_uniform;
+GLint g_bbox_max_uniform;
 
 float wallDepth = 1.0f;
 float wallWidth = 20.0f;
 float wallHeight = 5.0f;
 
 std::vector<RectangularObject> walls = {
-    {.width = 20, .height = 5, .depth = 4, .x = 0, .y = 0, .z = 0, .rotation = 0},
-    {.width = 12, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 8, .rotation = 90},
-    {.width = 8, .height = 5, .depth = 4, .x = -14, .y = 0, .z = 12, .rotation = 0},
-    {.width = 8, .height = 5, .depth = 4, .x = -16, .y = 0, .z = 18, .rotation = 90},
-    {.width = 8, .height = 5, .depth = 4, .x = -22, .y = 0, .z = 20, .rotation = 0},
-    {.width = 8, .height = 5, .depth = 4, .x = -24, .y = 0, .z = 26, .rotation = 90},
-    {.width = 20, .height = 5, .depth = 4, .x = -16, .y = 0, .z = 32, .rotation = 0},
-    {.width = 20, .height = 5, .depth = 4, .x = -16, .y = 0, .z = 32, .rotation = 0},
-    {.width = 8, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 38, .rotation = 90},
-    {.width = 24, .height = 5, .depth = 4, .x = 6, .y = 0, .z = 40, .rotation = 0},
-    {.width = 8, .height = 5, .depth = 4, .x = 16, .y = 0, .z = 34, .rotation = 90},
-    {.width = 32, .height = 5, .depth = 4, .x = 34, .y = 0, .z = 36, .rotation = 0},
-    {.width = 8, .height = 5, .depth = 4, .x = 26, .y = 0, .z = 32, .rotation = 0},
-    {.width = 16, .height = 5, .depth = 4, .x = 48, .y = 0, .z = 26, .rotation = 90},
-    {.width = 20, .height = 5, .depth = 4, .x = 36, .y = 0, .z = 20, .rotation = 0},
-    {.width = 20, .height = 5, .depth = 4, .x = 20, .y = 0, .z = 24, .rotation = 0},
-    {.width = 12, .height = 5, .depth = 4, .x = 12, .y = 0, .z = 16, .rotation = 90},
-    {.width = 12, .height = 5, .depth = 4, .x = 8, .y = 0, .z = 8, .rotation = 90},
+    {.width = 4, .height = 5, .depth = 4, .x = 0, .y = 0, .z = 0, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -4, .y = 0, .z = 0, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 0, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 4, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 8, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 12, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -12, .y = 0, .z = 12, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -16, .y = 0, .z = 12, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -16, .y = 0, .z = 16, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -16, .y = 0, .z = 20, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -20, .y = 0, .z = 20, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -24, .y = 0, .z = 20, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -24, .y = 0, .z = 24, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -24, .y = 0, .z = 28, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -24, .y = 0, .z = 32, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -20, .y = 0, .z = 32, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -16, .y = 0, .z = 32, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -12, .y = 0, .z = 32, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 32, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 36, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 40, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -4, .y = 0, .z = 40, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 0, .y = 0, .z = 40, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 4, .y = 0, .z = 40, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 8, .y = 0, .z = 40, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 12, .y = 0, .z = 40, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 16, .y = 0, .z = 40, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 16, .y = 0, .z = 32, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 16, .y = 0, .z = 36, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 20, .y = 0, .z = 36, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 24, .y = 0, .z = 36, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 24, .y = 0, .z = 32, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 28, .y = 0, .z = 36, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 28, .y = 0, .z = 32, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 32, .y = 0, .z = 36, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 36, .y = 0, .z = 36, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 40, .y = 0, .z = 36, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 44, .y = 0, .z = 36, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 48, .y = 0, .z = 36, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 48, .y = 0, .z = 32, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 48, .y = 0, .z = 28, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 48, .y = 0, .z = 24, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 48, .y = 0, .z = 20, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 44, .y = 0, .z = 20, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 40, .y = 0, .z = 20, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 36, .y = 0, .z = 20, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 32, .y = 0, .z = 20, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 28, .y = 0, .z = 20, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 28, .y = 0, .z = 24, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 24, .y = 0, .z = 24, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 20, .y = 0, .z = 24, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 16, .y = 0, .z = 24, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 12, .y = 0, .z = 24, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 12, .y = 0, .z = 20, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 12, .y = 0, .z = 16, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 12, .y = 0, .z = 12, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 8, .y = 0, .z = 12, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 8, .y = 0, .z = 8, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 8, .y = 0, .z = 4, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 8, .y = 0, .z = 0, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 4, .y = 0, .z = 0, .rotation = 0},
+
+    {.width = 4, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 20, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 24, .rotation = 0},
+
+    {.width = 4, .height = 5, .depth = 4, .x = 0, .y = 0, .z = 20, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 0, .y = 0, .z = 24, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 4, .y = 0, .z = 20, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 4, .y = 0, .z = 24, .rotation = 0},
+
+    {.width = 4, .height = 5, .depth = 4, .x = 0, .y = 0, .z = 32, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 4, .y = 0, .z = 32, .rotation = 0},
+    {.width = 4, .height = 5, .depth = 4, .x = 8, .y = 0, .z = 32, .rotation = 0},
 
 };
 
@@ -238,26 +299,31 @@ RectangularObject makeBox(float x, float z)
 };
 
 std::vector<RectangularObject> boxes = {
-    makeBox(-4, 12),
-    makeBox(-8, 24),
-    makeBox(0, 12),
-    makeBox(-8, 16)};
+    makeBox(-4, 8),
+    makeBox(-4, 16),
+    makeBox(4, 12),
+    makeBox(4, 16),
+    makeBox(-4, 28),
+    makeBox(-16, 28)};
 
 /* Checkpoints */
 
 RectangularObject makeCheckpoint(float x, float z)
 {
     float ground = -5.0f;
-    float cube_edge = 2.0f;
+    float cube_edge = 3.5f;
 
     return {.width = cube_edge, .height = 0, .depth = cube_edge, .x = x, .y = ground, .z = z, .rotation = 0};
 };
 
 std::vector<RectangularObject> checkpoints = {
-    makeCheckpoint(-1, 5),
-    makeCheckpoint(-3, 20),
-    makeCheckpoint(5, 8),
-    makeCheckpoint(-15, 23)};
+    makeCheckpoint(40, 24),
+    makeCheckpoint(44, 24),
+    makeCheckpoint(40, 28),
+    makeCheckpoint(44, 28),
+    makeCheckpoint(40, 32),
+    makeCheckpoint(44, 32),
+};
 
 /* */
 
@@ -383,6 +449,9 @@ bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
     return true;
 }
 
+// Número de texturas carregadas pela função LoadTextureImage()
+GLuint g_NumLoadedTextures = 0;
+
 int main()
 {
     // Inicializamos a biblioteca GLFW, utilizada para criar uma janela do
@@ -456,12 +525,14 @@ int main()
     //
     LoadShadersFromFiles();
 
+    LoadTextureImage("../../data/metal.jpeg");   // TextureImage0
+    LoadTextureImage("../../data/madeira.jpeg"); // TextureImage0
+    LoadTextureImage("../../data/metal.jpeg");   // TextureImage0
+
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/cube.obj");
-
     // Recalcular as normais após a escala
     ComputeNormals(&spheremodel);
-
     // Adicionar os triângulos à cena virtual
     BuildTrianglesAndAddToVirtualScene(&spheremodel);
     ObjModel retro("../../data/untitled.obj");
@@ -571,7 +642,7 @@ int main()
 
             model = wall.getModelMatrix() * Matrix_Scale(0.5, 0.5, 0.5);
             glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-            glUniform1i(g_object_id_uniform, 1);
+            glUniform1i(g_object_id_uniform, 0);
             DrawVirtualObject("Cube");
             model = Matrix_Identity(); // Transformação inicial = identidade.
         }
@@ -579,7 +650,7 @@ int main()
         /* Draw player */
         glm::mat4 playerM = player.asRectangularObject().getModelMatrix() * Matrix_Scale(0.274725275, 0.338983051, 0.302114804) * Matrix_Rotate_Y(-M_PI / 2);
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(playerM));
-        glUniform1i(g_object_id_uniform, 0);
+        glUniform1i(g_object_id_uniform, 3);
         DrawVirtualObject("Retro");
 
         /* Draw boxes */
@@ -587,7 +658,7 @@ int main()
         {
             model = boxes[i].getModelMatrix() * Matrix_Scale(0.5, 0.5, 0.5);
             glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-            glUniform1i(g_object_id_uniform, 0);
+            glUniform1i(g_object_id_uniform, 1);
             DrawVirtualObject("Cube");
             model = Matrix_Identity();
         }
@@ -598,7 +669,7 @@ int main()
             model = checkpoints[i].getModelMatrix() * Matrix_Scale(0.5, 0.5, 0.5);
 
             glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-            glUniform1i(g_object_id_uniform, 2);
+            glUniform1i(g_object_id_uniform, 4);
             DrawVirtualObject("Cube");
             model = Matrix_Identity(); // Transformação inicial = identidade.
         }
@@ -986,6 +1057,7 @@ void TextRendering_FreeCamera(GLFWwindow *window, Camera *camera)
     TextRendering_PrintString(window, buffer, -1.0f + pad / 10, -1.0f + 2 * pad / 10, 1.0f);
 }
 
+// Constrói triângulos para futura renderização a partir de um ObjModel.
 void BuildTrianglesAndAddToVirtualScene(ObjModel *model)
 {
     GLuint vertex_array_object_id;
@@ -1001,6 +1073,12 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel *model)
     {
         size_t first_index = indices.size();
         size_t num_triangles = model->shapes[shape].mesh.num_face_vertices.size();
+
+        const float minval = std::numeric_limits<float>::min();
+        const float maxval = std::numeric_limits<float>::max();
+
+        glm::vec3 bbox_min = glm::vec3(maxval, maxval, maxval);
+        glm::vec3 bbox_max = glm::vec3(minval, minval, minval);
 
         for (size_t triangle = 0; triangle < num_triangles; ++triangle)
         {
@@ -1020,6 +1098,13 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel *model)
                 model_coefficients.push_back(vy);   // Y
                 model_coefficients.push_back(vz);   // Z
                 model_coefficients.push_back(1.0f); // W
+
+                bbox_min.x = std::min(bbox_min.x, vx);
+                bbox_min.y = std::min(bbox_min.y, vy);
+                bbox_min.z = std::min(bbox_min.z, vz);
+                bbox_max.x = std::max(bbox_max.x, vx);
+                bbox_max.y = std::max(bbox_max.y, vy);
+                bbox_max.z = std::max(bbox_max.z, vz);
 
                 // Inspecionando o código da tinyobjloader, o aluno Bernardo
                 // Sulzbach (2017/1) apontou que a maneira correta de testar se
@@ -1055,6 +1140,9 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel *model)
         theobject.num_indices = last_index - first_index + 1; // Número de indices
         theobject.rendering_mode = GL_TRIANGLES;              // Índices correspondem ao tipo de rasterização GL_TRIANGLES.
         theobject.vertex_array_object_id = vertex_array_object_id;
+
+        theobject.bbox_min = bbox_min;
+        theobject.bbox_max = bbox_max;
 
         g_VirtualScene[model->shapes[shape].name] = theobject;
     }
@@ -1150,9 +1238,7 @@ void ComputeNormals(ObjModel *model)
             const glm::vec4 b = vertices[1];
             const glm::vec4 c = vertices[2];
 
-            // PREENCHA AQUI o cálculo da normal de um triângulo cujos vértices
-            // estão nos pontos "a", "b", e "c", definidos no sentido anti-horário.
-            const glm::vec4 n = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+            const glm::vec4 n = crossproduct(b - a, c - a);
 
             for (size_t vertex = 0; vertex < 3; ++vertex)
             {
@@ -1183,6 +1269,13 @@ void DrawVirtualObject(const char *object_name)
     // comentários detalhados dentro da definição de BuildTrianglesAndAddToVirtualScene().
     glBindVertexArray(g_VirtualScene[object_name].vertex_array_object_id);
 
+    // Setamos as variáveis "bbox_min" e "bbox_max" do fragment shader
+    // com os parâmetros da axis-aligned bounding box (AABB) do modelo.
+    glm::vec3 bbox_min = g_VirtualScene[object_name].bbox_min;
+    glm::vec3 bbox_max = g_VirtualScene[object_name].bbox_max;
+    glUniform4f(g_bbox_min_uniform, bbox_min.x, bbox_min.y, bbox_min.z, 1.0f);
+    glUniform4f(g_bbox_max_uniform, bbox_max.x, bbox_max.y, bbox_max.z, 1.0f);
+
     // Pedimos para a GPU rasterizar os vértices dos eixos XYZ
     // apontados pelo VAO como linhas. Veja a definição de
     // g_VirtualScene[""] dentro da função BuildTrianglesAndAddToVirtualScene(), e veja
@@ -1198,6 +1291,7 @@ void DrawVirtualObject(const char *object_name)
     // alterar o mesmo. Isso evita bugs.
     glBindVertexArray(0);
 }
+
 // set makeprg=cd\ ..\ &&\ make\ run\ >/dev/null
 // vim: set spell spelllang=pt_br :
 
@@ -1238,6 +1332,15 @@ void LoadShadersFromFiles()
     g_view_uniform = glGetUniformLocation(g_GpuProgramID, "view");             // Variável da matriz "view" em shader_vertex.glsl
     g_projection_uniform = glGetUniformLocation(g_GpuProgramID, "projection"); // Variável da matriz "projection" em shader_vertex.glsl
     g_object_id_uniform = glGetUniformLocation(g_GpuProgramID, "object_id");   // Variável "object_id" em shader_fragment.glsl
+    g_bbox_min_uniform = glGetUniformLocation(g_GpuProgramID, "bbox_min");
+    g_bbox_max_uniform = glGetUniformLocation(g_GpuProgramID, "bbox_max");
+
+    // Variáveis em "shader_fragment.glsl" para acesso das imagens de textura
+    glUseProgram(g_GpuProgramID);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage0"), 0);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage1"), 1);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage2"), 2);
+    glUseProgram(0);
 }
 
 // Carrega um Vertex Shader de um arquivo GLSL. Veja definição de LoadShader() abaixo.
@@ -1386,4 +1489,56 @@ void LoadShader(const char *filename, GLuint shader_id)
 
     // A chamada "delete" em C++ é equivalente ao "free()" do C
     delete[] log;
+}
+
+// Função que carrega uma imagem para ser utilizada como textura
+void LoadTextureImage(const char *filename)
+{
+    printf("Carregando imagem \"%s\"... ", filename);
+
+    // Primeiro fazemos a leitura da imagem do disco
+    stbi_set_flip_vertically_on_load(true);
+    int width;
+    int height;
+    int channels;
+    unsigned char *data = stbi_load(filename, &width, &height, &channels, 3);
+
+    if (data == NULL)
+    {
+        fprintf(stderr, "ERROR: Cannot open image file \"%s\".\n", filename);
+        std::exit(EXIT_FAILURE);
+    }
+
+    printf("OK (%dx%d).\n", width, height);
+
+    // Agora criamos objetos na GPU com OpenGL para armazenar a textura
+    GLuint texture_id;
+    GLuint sampler_id;
+    glGenTextures(1, &texture_id);
+    glGenSamplers(1, &sampler_id);
+
+    // Veja slides 95-96 do documento Aula_20_Mapeamento_de_Texturas.pdf
+    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // Parâmetros de amostragem da textura.
+    glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glSamplerParameteri(sampler_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Agora enviamos a imagem lida do disco para a GPU
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+
+    GLuint textureunit = g_NumLoadedTextures;
+    glActiveTexture(GL_TEXTURE0 + textureunit);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glBindSampler(textureunit, sampler_id);
+
+    stbi_image_free(data);
+
+    g_NumLoadedTextures += 1;
 }

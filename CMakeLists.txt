@@ -13,6 +13,7 @@ set(SOURCES
   src/Player.cpp
   src/collision.cpp
   src/tiny_obj_loader.cpp
+  src/stb_image.cpp
 )
 
 cmake_minimum_required(VERSION 3.5.0)
