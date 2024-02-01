@@ -31,6 +31,7 @@ public:
     void setPositionVector(glm::vec4 vector);
     RectangularObject asRectangularObject();
     DIRECTION getDirection();
+    void setRotation(float value);
 };
 
 #endif // PLAYER_H

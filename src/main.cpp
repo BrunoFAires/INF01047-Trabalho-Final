@@ -188,6 +188,9 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 Player player(20.f, 0, 32, FORWARD);
 Camera cameraLookAt(3.13, 2.0f, 0, 50, 10.f, 60, 40);
 bool lookAt = true;
+bool rotateLeft = false;
+bool rotateRight = false;
+int timeT = 0;
 
 // Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
 bool g_UsePerspectiveProjection = true;
@@ -547,6 +550,23 @@ int main()
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
+        if (rotateLeft && timeT > 0)
+        {
+            player.setRotation(3);
+            timeT -= 1;
+        }
+        else if (rotateRight && timeT > 0)
+        {
+
+            player.setRotation(-3);
+            timeT -= 1;
+        }
+        else
+        {
+            rotateLeft = false;
+            rotateRight = false;
+            timeT = 0;
+        }
         // Aqui executamos as operações de renderização
 
         // Definimos a cor do "fundo" do framebuffer como branco.  Tal cor é
@@ -642,7 +662,7 @@ int main()
         }
 
         /* Draw player */
-        glm::mat4 playerM = player.asRectangularObject().getModelMatrix() * Matrix_Scale(0.3, 0.19047619, 0.214592275) * Matrix_Rotate_Y(M_PI / 2);
+        glm::mat4 playerM = player.asRectangularObject().getModelMatrix() * Matrix_Scale(0.3, 0.19047619, 0.15) * Matrix_Rotate_Y(M_PI / 2);
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(playerM));
         glUniform1i(g_object_id_uniform, 4);
         DrawVirtualObject("Forklifter_Cylinder.001");
@@ -885,7 +905,7 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     {
         g_ShowInfoText = !g_ShowInfoText;
     }
-    if (key == GLFW_KEY_W && action == GLFW_PRESS && !testPlayerCollisionWithWalls(player.getDirection()))
+    if (key == GLFW_KEY_W && action == GLFW_PRESS && !testPlayerCollisionWithWalls(player.getDirection()) && rotateLeft == false && rotateRight == false)
     {
         if (shouldMoveAfterCollisionWithBoxes(player.getDirection()))
         {
@@ -917,13 +937,17 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
         }
     } */
 
-    if (key == GLFW_KEY_A && action == GLFW_PRESS)
+    if (key == GLFW_KEY_A && action == GLFW_PRESS && rotateRight == false)
     {
+        rotateLeft = true;
+        timeT += 30;
         player.rotateLeft();
     }
 
-    if (key == GLFW_KEY_D && action == GLFW_PRESS)
+    if (key == GLFW_KEY_D && action == GLFW_PRESS && rotateLeft == false)
     {
+        rotateRight = true;
+        timeT += 30;
         player.rotateRight();
     }
 

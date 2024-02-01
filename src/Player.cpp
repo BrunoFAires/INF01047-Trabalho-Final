@@ -78,7 +78,6 @@ void Player::moveRight()
 void Player::rotateLeft()
 {
     camera->setCameraTheta(-M_PI / 180 * 90);
-    rotation += 90;
     if (direction == FORWARD)
     {
         direction = LEFT;
@@ -100,7 +99,7 @@ void Player::rotateLeft()
 void Player::rotateRight()
 {
     camera->setCameraTheta(M_PI / 180 * 90);
-    rotation -= 90;
+
     if (direction == FORWARD)
     {
         direction = RIGHT;
@@ -139,4 +138,9 @@ Player *Player::clone()
 DIRECTION Player::getDirection()
 {
     return direction;
+}
+
+void Player::setRotation(float value)
+{
+    rotation += value;
 }
