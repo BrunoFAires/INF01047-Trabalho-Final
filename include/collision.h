@@ -17,6 +17,19 @@ enum DIRECTION
     RIGHT
 };
 
+struct SphereObject
+{
+    float radius, x, y, z;
+
+    glm::mat4 getModelMatrix()
+    {
+        glm::mat4 model = Matrix_Identity();
+        model = model * Matrix_Translate(x, y, z);
+        model = model * Matrix_Scale(radius, radius, radius);
+        return model;
+    }
+};
+
 struct RectangularObject
 {
     float width, height, depth, x, y, z;
@@ -39,22 +52,23 @@ struct RectangularObject
         switch (direction)
         {
         case FORWARD:
-            x += velocity * viewVector.x;
-            z += velocity * viewVector.z;
+            z -= 4;
             break;
         case BACKWARD:
-            x -= velocity * viewVector.x;
-            z -= velocity * viewVector.z;
+            z += 4;
             break;
         case LEFT:
-            x += velocity * cameraAux.x;
-            z += velocity * cameraAux.z;
+            x -= 4;
             break;
         case RIGHT:
-            x -= velocity * cameraAux.x;
-            z -= velocity * cameraAux.z;
+            x += 4;
             break;
         }
+    }
+
+    glm::vec3 getCenterPoint()
+    {
+        return getModelMatrix()[3];
     }
 
     RectangularObject clone()
@@ -73,4 +87,5 @@ struct RectangularObject
 #endif
 
 bool testAABBColision(RectangularObject obj1, RectangularObject obj2);
+bool testeSphereCollision(glm::vec3 point, SphereObject obj2);
 void printMatrix(const glm::mat4 &matrix);

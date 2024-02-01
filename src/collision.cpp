@@ -1,4 +1,5 @@
 #include "collision.h"
+#include <math.h>
 
 bool testAABBColision(RectangularObject obj1, RectangularObject obj2)
 {
@@ -25,6 +26,18 @@ bool testAABBColision(RectangularObject obj1, RectangularObject obj2)
     bool overlapZ = (min1.z < max2.z) && (max1.z > min2.z);
 
     return overlapX && overlapY && overlapZ;
+}
+
+bool testeSphereCollision(glm::vec3 point, SphereObject obj2)
+{
+    glm::mat4 model2 = obj2.getModelMatrix();
+    glm::vec3 position2(model2[3]);
+
+    float disntace = sqrt(pow(point.x - position2.x, 2) +
+                          pow(point.y - position2.y, 2) +
+                          pow(point.z - position2.z, 2));
+
+    return disntace <= obj2.radius;
 }
 
 void printMatrix(const glm::mat4 &matrix)

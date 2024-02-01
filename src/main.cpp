@@ -185,7 +185,7 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // usuário através do mouse (veja função CursorPosCallback()). A posição
 // efetiva da câmera é calculada dentro da função main(), dentro do loop de
 // renderização.
-Player player(20.f, 0, 32);
+Player player(20.f, 0, 32, FORWARD);
 Camera cameraLookAt(3.13, 2.0f, 0, 50, 10.f, 60, 40);
 bool lookAt = true;
 
@@ -290,10 +290,16 @@ std::vector<RectangularObject> walls = {
 // Quanto maior Y, mais pra cima
 // Quanto maior Z, mais pra trás
 
+SphereObject makeSphere(float x, float z, float ground)
+{
+
+    return {.radius = 4, .x = x, .y = ground, .z = z};
+};
+
 RectangularObject makeBox(float x, float z)
 {
     float ground = -1.5f;
-    float cube_edge = 3.5f;
+    float cube_edge = 4;
 
     return {.width = cube_edge, .height = cube_edge, .depth = cube_edge, .x = x, .y = ground, .z = z, .rotation = 0};
 };
@@ -308,21 +314,13 @@ std::vector<RectangularObject> boxes = {
 
 /* Checkpoints */
 
-RectangularObject makeCheckpoint(float x, float z)
-{
-    float ground = -5.0f;
-    float cube_edge = 3.5f;
-
-    return {.width = cube_edge, .height = 0, .depth = cube_edge, .x = x, .y = ground, .z = z, .rotation = 0};
-};
-
-std::vector<RectangularObject> checkpoints = {
-    makeCheckpoint(40, 24),
-    makeCheckpoint(44, 24),
-    makeCheckpoint(40, 28),
-    makeCheckpoint(44, 28),
-    makeCheckpoint(40, 32),
-    makeCheckpoint(44, 32),
+std::vector<SphereObject> checkpoints = {
+    makeSphere(40, 24, -2),
+    makeSphere(44, 24, -2),
+    makeSphere(40, 28, -2),
+    makeSphere(44, 28, -2),
+    makeSphere(40, 32, -2),
+    makeSphere(44, 32, -2),
 };
 
 /* */
@@ -331,21 +329,7 @@ bool testPlayerCollisionWithWalls(DIRECTION direction)
 {
     Player *player_clone = player.clone();
 
-    switch (direction)
-    {
-    case FORWARD:
-        player_clone->moveForward();
-        break;
-    case LEFT:
-        player_clone->moveLeft();
-        break;
-    case RIGHT:
-        player_clone->moveRight();
-        break;
-    case BACKWARD:
-        player_clone->moveBackward();
-        break;
-    }
+    player_clone->moveForward();
 
     for (int i = 0; i < walls.size(); i++)
     {
@@ -379,7 +363,7 @@ void testCheckpoints(RectangularObject object)
 {
     for (int i = 0; i < checkpoints.size(); i++)
     {
-        if (testAABBColision(object, checkpoints[i]))
+        if (testeSphereCollision(object.getCenterPoint(), checkpoints[i]))
         {
             printf("Box reached checkpoint!\n");
         }
@@ -432,11 +416,11 @@ bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
         if (testAABBColision(player_clone->asRectangularObject(), boxes[i]))
         {
             printf("Collision with box!\n");
-            bool didNotCollideWithWalls = !testCollisionWithWalls(boxes[i], FORWARD, viewVector);
-            bool didNotCollideWithOtherBoxes = !testBoxCollisionWithBoxes(i, FORWARD, viewVector);
+            bool didNotCollideWithWalls = !testCollisionWithWalls(boxes[i], player.getDirection(), viewVector);
+            bool didNotCollideWithOtherBoxes = !testBoxCollisionWithBoxes(i, player.getDirection(), viewVector);
             if (didNotCollideWithWalls && didNotCollideWithOtherBoxes)
             {
-                boxes[i].move(FORWARD, viewVector);
+                boxes[i].move(player.getDirection(), viewVector);
                 testCheckpoints(boxes[i]);
                 return true;
             }
@@ -528,6 +512,7 @@ int main()
     LoadTextureImage("../../data/metal.jpeg");   // TextureImage0
     LoadTextureImage("../../data/madeira.jpeg"); // TextureImage0
     LoadTextureImage("../../data/metal.jpeg");   // TextureImage0
+    LoadTextureImage("../../data/stapler.jpeg"); // TextureImage0
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/cube.obj");
@@ -535,9 +520,18 @@ int main()
     ComputeNormals(&spheremodel);
     // Adicionar os triângulos à cena virtual
     BuildTrianglesAndAddToVirtualScene(&spheremodel);
+
     ObjModel retro("../../data/untitled.obj");
     ComputeNormals(&retro);
     BuildTrianglesAndAddToVirtualScene(&retro);
+
+    ObjModel sphere("../../data/sphere.obj");
+    ComputeNormals(&sphere);
+    BuildTrianglesAndAddToVirtualScene(&sphere);
+
+    ObjModel stapler("../../data/Stapler.obj");
+    ComputeNormals(&stapler);
+    BuildTrianglesAndAddToVirtualScene(&stapler);
 
     // Inicializamos o código para renderização de texto.
     TextRendering_Init();
@@ -648,10 +642,10 @@ int main()
         }
 
         /* Draw player */
-        glm::mat4 playerM = player.asRectangularObject().getModelMatrix() * Matrix_Scale(0.274725275, 0.338983051, 0.302114804) * Matrix_Rotate_Y(-M_PI / 2);
+        glm::mat4 playerM = player.asRectangularObject().getModelMatrix() * Matrix_Scale(0.3, 0.19047619, 0.214592275) * Matrix_Rotate_Y(M_PI / 2);
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(playerM));
-        glUniform1i(g_object_id_uniform, 3);
-        DrawVirtualObject("Retro");
+        glUniform1i(g_object_id_uniform, 4);
+        DrawVirtualObject("Forklifter_Cylinder.001");
 
         /* Draw boxes */
         for (int i = 0; i < boxes.size(); i++)
@@ -670,7 +664,7 @@ int main()
 
             glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             glUniform1i(g_object_id_uniform, 4);
-            DrawVirtualObject("Cube");
+            DrawVirtualObject("the_sphere");
             model = Matrix_Identity(); // Transformação inicial = identidade.
         }
 
@@ -686,7 +680,7 @@ int main()
         // Imprimimos na tela informação sobre o número de quadros renderizados
         // por segundo (frames per second).
         TextRendering_ShowFramesPerSecond(window);
-        TextRendering_FreeCamera(window, &cameraLookAt);
+        TextRendering_FreeCamera(window, &player.getCamera());
 
         // O framebuffer onde OpenGL executa as operações de renderização não
         // é o mesmo que está sendo mostrado para o usuário, caso contrário
@@ -833,18 +827,17 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
         else
         {
 
-            // Atualizamos parâmetros da câmera com os deslocamentos
-            // player.getCamera().setCameraTheta(rotationIncrement * (dx / 90.0f));
-            // player.getCamera().setCameraPhi(0.01f * dy); //TODO aparentemente há um bug quando move a camera verticalmente. De qualquer forma, a princípio, não vamos deixar mover nessa direção.
+            player.getCamera().setCameraTheta(0.01f * dx); // TODO aparentemente há um bug quando move a camera verticalmente. De qualquer forma, a princípio, não vamos deixar mover nessa direção.
+            // player.getCamera().setCameraPhi(0.01f * dy);   // TODO aparentemente há um bug quando move a camera verticalmente. De qualquer forma, a princípio, não vamos deixar mover nessa direção.
         }
         float phimax = 3.141592f / 2;
         float phimin = -phimax;
 
-        /* if (cameraLookAt.getCameraPhi() > phimax)
-            cameraLookAt.setCameraPhi(phimax);
+        /*         if (player.getCamera().getCameraPhi() > phimax)
+                    player.getCamera().setCameraPhi(phimax);
 
-        else if (cameraLookAt.getCameraPhi() < phimin)
-            cameraLookAt.setCameraPhi(phimax); */
+                else if (player.getCamera().getCameraPhi() < phimin)
+                    player.getCamera().setCameraPhi(phimin); */
         g_LastCursorPosX = xpos;
         g_LastCursorPosY = ypos;
     }
@@ -924,12 +917,12 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
         }
     } */
 
-    if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)
+    if (key == GLFW_KEY_A && action == GLFW_PRESS)
     {
         player.rotateLeft();
     }
 
-    if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS)
+    if (key == GLFW_KEY_D && action == GLFW_PRESS)
     {
         player.rotateRight();
     }
@@ -1340,6 +1333,7 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage0"), 0);
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage1"), 1);
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage2"), 2);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage3"), 3);
     glUseProgram(0);
 }
 
