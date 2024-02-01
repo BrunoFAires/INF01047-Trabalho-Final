@@ -1,11 +1,12 @@
 #include "Player.h"
 
-Player::Player(float x, float y, float z)
+Player::Player(float x, float y, float z, DIRECTION d)
 {
+    direction = d;
     positionVector.x = x;
     positionVector.y = y;
     positionVector.z = z;
-    camera = new Camera(0.0f, 0.0f, 5, 4, x, 5, z);
+    camera = new Camera(0.0f, -1.14f, -15, 4, x, 15, z);
 }
 
 Camera &Player::getCamera()
@@ -28,9 +29,26 @@ RectangularObject Player::asRectangularObject()
 
 void Player::moveForward()
 {
-    camera->moveForward();
-    positionVector.x = camera->getPositionVector().x;
-    positionVector.z = camera->getPositionVector().z;
+    if (direction == FORWARD)
+    {
+        camera->moveForward();
+        positionVector.z -= 4;
+    }
+    else if (direction == LEFT)
+    {
+        camera->moveLeft();
+        positionVector.x -= 4;
+    }
+    else if (direction == RIGHT)
+    {
+        camera->moveRight();
+        positionVector.x += 4;
+    }
+    else if (direction == BACKWARD)
+    {
+        camera->moveBackward();
+        positionVector.z += 4;
+    }
 }
 
 void Player::moveBackward()
@@ -113,7 +131,7 @@ void Player::restart()
 
 Player *Player::clone()
 {
-    Player *newPlayer = new Player(positionVector.x, positionVector.y, positionVector.z);
+    Player *newPlayer = new Player(positionVector.x, positionVector.y, positionVector.z, direction);
     newPlayer->camera = new Camera(0.0f, 0.0f, 5, 4, camera->getPositionVector().x, camera->getPositionVector().y, camera->getPositionVector().z);
     return newPlayer;
 }

@@ -66,28 +66,22 @@ void Camera::setPosition(float x, float y, float z)
 
 void Camera::moveForward()
 {
-    positionVector.x += (viewVector.x);
-    positionVector.z += (viewVector.z);
+    positionVector.z -= 4;
 }
 
 void Camera::moveBackward()
 {
-    positionVector.x -= (viewVector.x);
-    positionVector.z -= (viewVector.z);
+    positionVector.z += 4;
 }
 
 void Camera::moveLeft()
 {
-    glm::vec4 cameraAux = Matrix_Rotate_Y(1.5708) * viewVector;
-    positionVector.x += (cameraAux.x);
-    positionVector.z += (cameraAux.z);
+    positionVector.x -= 4;
 }
 
 void Camera::moveRight()
 {
-    glm::vec4 cameraAux = Matrix_Rotate_Y(1.5708) * viewVector;
-    positionVector.x -= (cameraAux.x);
-    positionVector.z -= (cameraAux.z);
+    positionVector.x += 4;
 }
 
 void Camera::updatePosition()

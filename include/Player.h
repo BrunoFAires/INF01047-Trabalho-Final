@@ -16,7 +16,7 @@ private:
     DIRECTION direction = FORWARD;
 
 public:
-    Player(float x, float y, float z);
+    Player(float x, float y, float z, DIRECTION direction);
     glm::vec4 getPositionVector();
     Camera &getCamera();
 
