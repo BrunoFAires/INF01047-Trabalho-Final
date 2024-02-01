@@ -32,6 +32,7 @@ uniform vec4 bbox_max;
 uniform sampler2D TextureImage0;
 uniform sampler2D TextureImage1;
 uniform sampler2D TextureImage2;
+uniform sampler2D TextureImage3;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec4 color;
@@ -106,6 +107,37 @@ void main()
         V = texcoords.y;
 
         vec3 Kd0 = texture(TextureImage1, vec2(U,V)).rgb;
+
+    // Equação de Iluminação
+        float lambert = max(0,dot(n,l));
+
+        color.rgb = Kd0 * (lambert + 0.01);
+
+    // NOTE: Se você quiser fazer o rendering de objetos transparentes, é
+    // necessário:
+    // 1) Habilitar a operação de "blending" de OpenGL logo antes de realizar o
+    //    desenho dos objetos transparentes, com os comandos abaixo no código C++:
+    //      glEnable(GL_BLEND);
+    //      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // 2) Realizar o desenho de todos objetos transparentes *após* ter desenhado
+    //    todos os objetos opacos; e
+    // 3) Realizar o desenho de objetos transparentes ordenados de acordo com
+    //    suas distâncias para a câmera (desenhando primeiro objetos
+    //    transparentes que estão mais longe da câmera).
+    // Alpha default = 1 = 100% opaco = 0% transparente
+        color.a = 1;
+
+        // Cor final com correção gamma, considerando monitor sRGB.
+        // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
+        color.rgb = pow(color.rgb, vec3(1.0,1.0,1.0)/2.2);
+        return;
+    }else    if ( object_id == 4 )
+    {
+        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
+        U = texcoords.x;
+        V = texcoords.y;
+
+        vec3 Kd0 = texture(TextureImage3, vec2(U,V)).rgb;
 
     // Equação de Iluminação
         float lambert = max(0,dot(n,l));
