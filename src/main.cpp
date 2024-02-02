@@ -318,12 +318,12 @@ std::vector<RectangularObject> boxes = {
 /* Checkpoints */
 
 std::vector<SphereObject> checkpoints = {
-    makeSphere(40, 24, -2),
-    makeSphere(44, 24, -2),
-    makeSphere(40, 28, -2),
-    makeSphere(44, 28, -2),
-    makeSphere(40, 32, -2),
-    makeSphere(44, 32, -2),
+    makeSphere(40, 24, -4),
+    makeSphere(44, 24, -4),
+    makeSphere(40, 28, -4),
+    makeSphere(44, 28, -4),
+    makeSphere(40, 32, -4),
+    makeSphere(44, 32, -4),
 };
 
 /* */
@@ -362,14 +362,37 @@ bool testCollisionWithWalls(RectangularObject obj, DIRECTION direction, glm::vec
     return false;
 }
 
-void testCheckpoints(RectangularObject object)
+bool testCheckpoints(RectangularObject object)
 {
     for (int i = 0; i < checkpoints.size(); i++)
     {
         if (testeSphereCollision(object.getCenterPoint(), checkpoints[i]))
         {
-            printf("Box reached checkpoint!\n");
+            return true;
         }
+    }
+    return false;
+}
+
+bool isGameFinished()
+{
+    for (int i = 0; i < boxes.size(); i++)
+    {
+        if (!testCheckpoints(boxes[i]))
+        {
+            printf("box %d did not collide with checkpoint\n", i);
+            // If any box still not colliding with a checkpoint, then game is not finished
+            return false;
+        }
+    }
+    return true;
+}
+
+void checkLevelFinished()
+{
+    if (isGameFinished())
+    {
+        printf("Congratulations! Level finished\n");
     }
 }
 
@@ -418,13 +441,17 @@ bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
     {
         if (testAABBColision(player_clone->asRectangularObject(), boxes[i]))
         {
-            printf("Collision with box!\n");
+            printf("Player collided with box!\n");
             bool didNotCollideWithWalls = !testCollisionWithWalls(boxes[i], player.getDirection(), viewVector);
             bool didNotCollideWithOtherBoxes = !testBoxCollisionWithBoxes(i, player.getDirection(), viewVector);
             if (didNotCollideWithWalls && didNotCollideWithOtherBoxes)
             {
                 boxes[i].move(player.getDirection(), viewVector);
-                testCheckpoints(boxes[i]);
+                if (testCheckpoints(boxes[i]))
+                {
+                    printf("You reached a checkpoint, keep going!\n");
+                    checkLevelFinished();
+                }
                 return true;
             }
             else
