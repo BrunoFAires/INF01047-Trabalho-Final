@@ -66,22 +66,22 @@ void Camera::setPosition(float x, float y, float z)
 
 void Camera::moveForward()
 {
-    positionVector.z -= 4;
+    positionVector.z -= 0.5;
 }
 
 void Camera::moveBackward()
 {
-    positionVector.z += 4;
+    positionVector.z += 0.5;
 }
 
 void Camera::moveLeft()
 {
-    positionVector.x -= 4;
+    positionVector.x -= 0.5;
 }
 
 void Camera::moveRight()
 {
-    positionVector.x += 4;
+    positionVector.x += 0.5;
 }
 
 void Camera::updatePosition()

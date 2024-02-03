@@ -32,22 +32,22 @@ void Player::moveForward()
     if (direction == FORWARD)
     {
         camera->moveForward();
-        positionVector.z -= 4;
+        positionVector.z -= 0.5;
     }
     else if (direction == LEFT)
     {
         camera->moveLeft();
-        positionVector.x -= 4;
+        positionVector.x -= 0.5;
     }
     else if (direction == RIGHT)
     {
         camera->moveRight();
-        positionVector.x += 4;
+        positionVector.x += 0.5;
     }
     else if (direction == BACKWARD)
     {
         camera->moveBackward();
-        positionVector.z += 4;
+        positionVector.z += 0.5;
     }
 }
 
