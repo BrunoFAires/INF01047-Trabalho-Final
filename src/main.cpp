@@ -543,25 +543,30 @@ int main()
     LoadTextureImage("../../data/madeira.jpeg"); // TextureImage0
     LoadTextureImage("../../data/metal.jpeg");   // TextureImage0
     LoadTextureImage("../../data/stapler.jpeg"); // TextureImage0
+    LoadTextureImage("../../data/button.jpeg");  // TextureImage0
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
-    ObjModel spheremodel("../../data/cube.obj");
+    ObjModel cubeModel("../../data/cube.obj");
     // Recalcular as normais após a escala
-    ComputeNormals(&spheremodel);
+    ComputeNormals(&cubeModel);
     // Adicionar os triângulos à cena virtual
-    BuildTrianglesAndAddToVirtualScene(&spheremodel);
+    BuildTrianglesAndAddToVirtualScene(&cubeModel);
 
     ObjModel retro("../../data/untitled.obj");
     ComputeNormals(&retro);
     BuildTrianglesAndAddToVirtualScene(&retro);
 
-    ObjModel sphere("../../data/sphere.obj");
-    ComputeNormals(&sphere);
-    BuildTrianglesAndAddToVirtualScene(&sphere);
+    ObjModel buttonModel("../../data/button.obj");
+    ComputeNormals(&buttonModel);
+    BuildTrianglesAndAddToVirtualScene(&buttonModel);
 
     ObjModel stapler("../../data/Stapler.obj");
     ComputeNormals(&stapler);
     BuildTrianglesAndAddToVirtualScene(&stapler);
+
+    ObjModel bunny("../../data/bunny.obj");
+    ComputeNormals(&bunny);
+    BuildTrianglesAndAddToVirtualScene(&bunny);
 
     // Inicializamos o código para renderização de texto.
     TextRendering_Init();
@@ -579,12 +584,13 @@ int main()
     {
         if (rotateLeft && timeT > 0)
         {
+            player.getCamera().setCameraTheta(-M_PI / 180 * 3);
             player.setRotation(3);
             timeT -= 1;
         }
         else if (rotateRight && timeT > 0)
         {
-
+            player.getCamera().setCameraTheta(M_PI / 180 * 3);
             player.setRotation(-3);
             timeT -= 1;
         }
@@ -688,12 +694,6 @@ int main()
             model = Matrix_Identity(); // Transformação inicial = identidade.
         }
 
-        /* Draw player */
-        glm::mat4 playerM = player.asRectangularObject().getModelMatrix() * Matrix_Scale(0.3, 0.19047619, 0.15) * Matrix_Rotate_Y(M_PI / 2);
-        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(playerM));
-        glUniform1i(g_object_id_uniform, 4);
-        DrawVirtualObject("Forklifter_Cylinder.001");
-
         /* Draw boxes */
         for (int i = 0; i < boxes.size(); i++)
         {
@@ -707,13 +707,19 @@ int main()
         /* Draw checkpoints */
         for (int i = 0; i < checkpoints.size(); i++)
         {
-            model = checkpoints[i].getModelMatrix() * Matrix_Scale(0.5, 0.5, 0.5);
+            model = checkpoints[i].getModelMatrix() * Matrix_Scale(0.4, 0.4, 0.4);
 
             glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-            glUniform1i(g_object_id_uniform, 4);
-            DrawVirtualObject("the_sphere");
+            glUniform1i(g_object_id_uniform, 2);
+            DrawVirtualObject("button");
             model = Matrix_Identity(); // Transformação inicial = identidade.
         }
+
+        /* Draw player */
+        glm::mat4 playerM = player.asRectangularObject().getModelMatrix() * Matrix_Scale(0.3, 0.19047619, 0.15) * Matrix_Rotate_Y(M_PI / 2);
+        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(playerM));
+        glUniform1i(g_object_id_uniform, 3);
+        DrawVirtualObject("Forklifter_Cylinder.001");
 
         // Neste ponto a matriz model recuperada é a matriz inicial (translação do torso)
 
@@ -1385,6 +1391,7 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage1"), 1);
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage2"), 2);
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage3"), 3);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage4"), 4);
     glUseProgram(0);
 }
 
