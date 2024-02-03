@@ -948,7 +948,7 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     {
         g_ShowInfoText = !g_ShowInfoText;
     }
-    if (key == GLFW_KEY_W && action == GLFW_PRESS && !testPlayerCollisionWithWalls(player.getDirection()) && rotateLeft == false && rotateRight == false)
+    if (key == GLFW_KEY_W && action == GLFW_PRESS && !testPlayerCollisionWithWalls(player.getDirection()) && rotateLeft == false && rotateRight == false && !wIsPressed)
     {
         wIsPressed = true;
         timeT = 8;
