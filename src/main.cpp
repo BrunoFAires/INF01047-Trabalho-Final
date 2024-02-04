@@ -38,6 +38,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <tiny_obj_loader.h>
 #include <stb_image.h>
+#include <iostream>
+#include <fstream>
+#include <chrono>
+#include <thread>
 
 // Headers locais, definidos na pasta "include/"
 #include "utils.h"
@@ -146,6 +150,8 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos);
 void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 void LoadTextureImage(const char *filename); // Função que carrega imagens de textura
 
+void readObjectsFromFile(const std::string &filename, Player &player, std::vector<RectangularObject> &rectangularObjects, std::vector<RectangularObject> &boxes, std::vector<SphereObject> &sphereObjects);
+
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
 struct SceneObject
@@ -185,19 +191,20 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // usuário através do mouse (veja função CursorPosCallback()). A posição
 // efetiva da câmera é calculada dentro da função main(), dentro do loop de
 // renderização.
-Player player(20.f, 0, 32, FORWARD);
+Player player(0, 0, 0, FORWARD);
 Camera cameraLookAt(3.13, 2.0f, 0, 50, 10.f, 60, 40);
 bool lookAt = true;
 bool rotateLeft = false;
 bool rotateRight = false;
 bool wIsPressed = false;
 int timeT = 0;
+int fileNumber = 1;
 
 // Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
 bool g_UsePerspectiveProjection = true;
 
 // Variável que controla se o texto informativo será mostrado na tela.
-bool g_ShowInfoText = true;
+bool g_ShowInfoText = false;
 
 // Variáveis que definem um programa de GPU (shaders). Veja função LoadShadersFromFiles().
 GLuint g_GpuProgramID = 0;
@@ -212,82 +219,8 @@ float wallDepth = 1.0f;
 float wallWidth = 20.0f;
 float wallHeight = 5.0f;
 
-std::vector<RectangularObject> walls = {
-    {.width = 4, .height = 5, .depth = 4, .x = 0, .y = 0, .z = 0, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -4, .y = 0, .z = 0, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 0, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 4, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 8, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 12, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -12, .y = 0, .z = 12, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -16, .y = 0, .z = 12, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -16, .y = 0, .z = 16, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -16, .y = 0, .z = 20, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -20, .y = 0, .z = 20, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -24, .y = 0, .z = 20, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -24, .y = 0, .z = 24, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -24, .y = 0, .z = 28, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -24, .y = 0, .z = 32, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -20, .y = 0, .z = 32, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -16, .y = 0, .z = 32, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -12, .y = 0, .z = 32, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 32, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 36, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 40, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -4, .y = 0, .z = 40, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 0, .y = 0, .z = 40, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 4, .y = 0, .z = 40, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 8, .y = 0, .z = 40, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 12, .y = 0, .z = 40, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 16, .y = 0, .z = 40, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 16, .y = 0, .z = 32, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 16, .y = 0, .z = 36, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 20, .y = 0, .z = 36, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 24, .y = 0, .z = 36, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 24, .y = 0, .z = 32, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 28, .y = 0, .z = 36, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 28, .y = 0, .z = 32, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 32, .y = 0, .z = 36, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 36, .y = 0, .z = 36, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 40, .y = 0, .z = 36, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 44, .y = 0, .z = 36, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 48, .y = 0, .z = 36, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 48, .y = 0, .z = 32, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 48, .y = 0, .z = 28, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 48, .y = 0, .z = 24, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 48, .y = 0, .z = 20, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 44, .y = 0, .z = 20, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 40, .y = 0, .z = 20, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 36, .y = 0, .z = 20, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 32, .y = 0, .z = 20, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 28, .y = 0, .z = 20, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 28, .y = 0, .z = 24, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 24, .y = 0, .z = 24, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 20, .y = 0, .z = 24, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 16, .y = 0, .z = 24, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 12, .y = 0, .z = 24, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 12, .y = 0, .z = 20, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 12, .y = 0, .z = 16, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 12, .y = 0, .z = 12, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 8, .y = 0, .z = 12, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 8, .y = 0, .z = 8, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 8, .y = 0, .z = 4, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 8, .y = 0, .z = 0, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 4, .y = 0, .z = 0, .rotation = 0},
-
-    {.width = 4, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 20, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = -8, .y = 0, .z = 24, .rotation = 0},
-
-    {.width = 4, .height = 5, .depth = 4, .x = 0, .y = 0, .z = 20, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 0, .y = 0, .z = 24, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 4, .y = 0, .z = 20, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 4, .y = 0, .z = 24, .rotation = 0},
-
-    {.width = 4, .height = 5, .depth = 4, .x = 0, .y = 0, .z = 32, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 4, .y = 0, .z = 32, .rotation = 0},
-    {.width = 4, .height = 5, .depth = 4, .x = 8, .y = 0, .z = 32, .rotation = 0},
-
-};
+std::vector<RectangularObject> walls;
+bool isLastLevelFinished = false;
 
 /* Boxes */
 // Quanto maior X, mais pra direita
@@ -308,24 +241,11 @@ RectangularObject makeBox(float x, float z)
     return {.width = cube_edge, .height = cube_edge, .depth = cube_edge, .x = x, .y = ground, .z = z, .rotation = 0};
 };
 
-std::vector<RectangularObject> boxes = {
-    makeBox(-4, 8),
-    makeBox(-4, 16),
-    makeBox(4, 12),
-    makeBox(4, 16),
-    makeBox(-4, 28),
-    makeBox(-16, 28)};
+std::vector<RectangularObject> boxes;
 
 /* Checkpoints */
 
-std::vector<SphereObject> checkpoints = {
-    makeSphere(40, 24, -4),
-    makeSphere(44, 24, -4),
-    makeSphere(40, 28, -4),
-    makeSphere(44, 28, -4),
-    makeSphere(40, 32, -4),
-    makeSphere(44, 32, -4),
-};
+std::vector<SphereObject> checkpoints;
 
 /* */
 
@@ -386,6 +306,9 @@ bool isGameFinished()
             return false;
         }
     }
+
+    isLastLevelFinished = true;
+
     return true;
 }
 
@@ -393,7 +316,9 @@ void checkLevelFinished()
 {
     if (isGameFinished())
     {
-        printf("Congratulations! Level finished\n");
+        wIsPressed = false;
+        timeT = 0;
+        readObjectsFromFile("../../data/" + std::to_string(fileNumber) + ".txt", player, walls, boxes, checkpoints);
     }
 }
 
@@ -580,6 +505,8 @@ int main()
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
+    readObjectsFromFile("../../data/" + std::to_string(fileNumber) + ".txt", player, walls, boxes, checkpoints);
+
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
@@ -597,7 +524,7 @@ int main()
         }
         else if (wIsPressed && timeT > 0)
         {
-            if (shouldMoveAfterCollisionWithBoxes(player.getDirection()))
+            if (shouldMoveAfterCollisionWithBoxes(player.getDirection()) && !isLastLevelFinished)
             {
                 player.moveForward();
             }
@@ -609,6 +536,11 @@ int main()
             rotateRight = false;
             wIsPressed = false;
             timeT = 0;
+        }
+
+        if (!isGameFinished())
+        {
+            isLastLevelFinished = false;
         }
         // Aqui executamos as operações de renderização
 
@@ -971,6 +903,12 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_C && action == GLFW_PRESS)
     {
         lookAt = !lookAt;
+    }
+
+    if (key == GLFW_KEY_R && action == GLFW_PRESS)
+    {
+        fileNumber--;
+        readObjectsFromFile("../../data/" + std::to_string(fileNumber) + ".txt", player, walls, boxes, checkpoints);
     }
 }
 
@@ -1577,4 +1515,80 @@ void LoadTextureImage(const char *filename)
     stbi_image_free(data);
 
     g_NumLoadedTextures += 1;
+}
+
+void readObjectsFromFile(const std::string &filename, Player &player, std::vector<RectangularObject> &rectangularObjects, std::vector<RectangularObject> &boxes, std::vector<SphereObject> &sphereObjects)
+{
+    fileNumber++;
+    rectangularObjects.clear();
+    boxes.clear();
+    sphereObjects.clear();
+    std::ifstream inputFile(filename);
+
+    if (!inputFile.is_open())
+    {
+        std::cerr << "Error opening the file." << std::endl;
+        return;
+    }
+
+    int lineCount = 0;
+    std::string line;
+    while (std::getline(inputFile, line)) // Skip leading whitespace
+    {
+        if (inputFile.peek() == '\n' and line.empty()) // Check for empty line
+        {
+            lineCount++;
+            continue;
+        }
+
+        if (lineCount == 0)
+        {
+            RectangularObject obj;
+            inputFile >> obj.width >> obj.height >> obj.depth >> obj.x >> obj.y >> obj.z >> obj.rotation;
+            rectangularObjects.push_back(obj);
+        }
+        else if (lineCount == 1)
+        {
+            RectangularObject obj;
+            inputFile >> obj.width >> obj.height >> obj.depth >> obj.x >> obj.y >> obj.z >> obj.rotation;
+            boxes.push_back(obj);
+        }
+        else if (lineCount == 2)
+        {
+            SphereObject obj;
+            inputFile >> obj.radius >> obj.x >> obj.y >> obj.z;
+            sphereObjects.push_back(obj);
+        }
+        else
+        {
+            float x;
+            int y, z;
+            std::string directionStr;
+
+            inputFile >> x >> y >> z >> directionStr;
+
+            DIRECTION dir;
+            if (directionStr == "FORWARD")
+            {
+                dir = FORWARD;
+            }
+            else if (directionStr == "BACKWARD")
+            {
+                dir = BACKWARD;
+            }
+            else if (directionStr == "LEFT")
+            {
+                dir = LEFT;
+            }
+            else if (directionStr == "RIGHT")
+            {
+                dir = RIGHT;
+            }
+
+            Player newPlayer(x, y, z, dir);
+            player = newPlayer;
+        }
+    }
+
+    inputFile.close();
 }
