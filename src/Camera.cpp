@@ -1,5 +1,6 @@
 #include "Camera.h"
 #include "matrices.h"
+#include <algorithm>
 
 Camera::Camera(float theta, float phi, float angle, float distance, float x, float y, float z)
 {
@@ -50,7 +51,12 @@ void Camera::setCameraTheta(float value)
 
 void Camera::setCameraPhi(float value)
 {
+    const float minPhi = 1.58f; 
+
     g_CameraPhi += value;
+
+    // Usamos isso para garantir que o Phi será maior que Pi/2, evitando que a câmera inverta
+    g_CameraPhi = std::max(minPhi, g_CameraPhi);
 }
 
 void Camera::setCameraDistance(float value)
@@ -64,30 +70,57 @@ void Camera::setPosition(float x, float y, float z)
     positionVector = glm::vec4(x, y, z, 1.0f);
 }
 
-void Camera::moveForward()
+void Camera::moveForward(float qty)
 {
-    positionVector.z -= 0.5;
+    positionVector.z -= qty;
 }
 
-void Camera::moveBackward()
+void Camera::moveBackward(float qty)
 {
-    positionVector.z += 0.5;
+    positionVector.z += qty;
 }
 
-void Camera::moveLeft()
+void Camera::moveLeft(float qty)
 {
-    positionVector.x -= 0.5;
+    positionVector.x -= qty;
 }
 
-void Camera::moveRight()
+void Camera::moveRight(float qty)
 {
-    positionVector.x += 0.5;
+    positionVector.x += qty;
+}
+
+void Camera::moveToViewVector(DIRECTION direction, float qty)
+{
+    // Como o produto vetorial produz um vetor perpendicular aos dois vetores,
+    // podemos obter o vetor que aponta para a esquerda:
+    glm::vec3 leftVector = glm::cross(glm::vec3(upVector), glm::vec3(viewVector));
+
+    // Normalizamos os vetores para obter um vetor unitário na mesma direçãox'
+    glm::vec3 normalizedViewVector = glm::normalize(glm::vec3(viewVector));
+    glm::vec3 normalizedLeftVector = glm::normalize(leftVector);
+
+    switch (direction)
+    {
+        case FORWARD:
+            positionVector += glm::vec4(normalizedViewVector * qty, 0.0f);
+            break;
+        case BACKWARD:
+            positionVector -= glm::vec4(normalizedViewVector * qty, 0.0f);
+            break;
+        case LEFT:
+            positionVector += glm::vec4(normalizedLeftVector * qty, 0.0f);
+            break;
+        case RIGHT:
+            positionVector -= glm::vec4(normalizedLeftVector * qty, 0.0f);
+            break;
+    }
 }
 
 void Camera::updatePosition()
 {
     positionVector.x = -viewVector.x;
-    positionVector.y = -2;
+    positionVector.y = -viewVector.y;
     positionVector.z = -viewVector.z;
 }
 

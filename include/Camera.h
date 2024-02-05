@@ -2,6 +2,7 @@
 #define CAMERA_H
 
 #include "glm/mat4x4.hpp"
+#include "collision.h"
 
 class Camera
 {
@@ -29,10 +30,11 @@ public:
     void setCameraPhi(float value);
     void setCameraDistance(float value);
     void setPosition(float x, float y, float z);
-    void moveForward();
-    void moveBackward();
-    void moveLeft();
-    void moveRight();
+    void moveForward(float qty = 0.5f);
+    void moveBackward(float qty = 0.5f);
+    void moveLeft(float qty = 0.5f);
+    void moveRight(float qty = 0.5f);
+    void moveToViewVector(DIRECTION direction, float qty = 5.0f);
     void updateView();
     void updatePosition();
     void restart();
