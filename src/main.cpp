@@ -35,6 +35,7 @@
 // Headers da biblioteca GLM: criação de matrizes e vetores.
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
+#include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <tiny_obj_loader.h>
 #include <stb_image.h>
@@ -56,6 +57,8 @@
 // Declaração de funções utilizadas para pilha de matrizes de modelagem.
 void PushMatrix(glm::mat4 M);
 void PopMatrix(glm::mat4 &M);
+
+bool shouldShowMapBezierOverview = true;
 
 struct ObjModel
 {
@@ -320,6 +323,7 @@ void checkLevelFinished()
         wIsPressed = false;
         timeT = 0;
         readObjectsFromFile("../../data/" + std::to_string(fileNumber) + ".txt", player, walls, boxes, checkpoints);
+        shouldShowMapBezierOverview = true;
     }
 }
 
@@ -388,6 +392,108 @@ bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
         }
     }
     return true;
+}
+
+void showMapBezierOverview(GLFWwindow *window, float step = 0.001f) {
+    glm::vec3 bezierPoints[4] = {
+        glm::vec3(10.f, 60, 40),
+        glm::vec3(-80.0f, 50, 20),
+        glm::vec3(60.0f, 30, -10),
+        glm::vec3(30.0f, 60, 30)
+    };
+    freeCam = true;
+
+    for (float t = 0.0f; t <= 1.0f; t += step) { 
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glUseProgram(g_GpuProgramID);
+
+        cameraLivre.updateView();
+
+        glm::mat4 view = Matrix_Camera_View(player.getCamera().getPositionVector(), player.getCamera().getViewVector(), player.getCamera().getUpVector());
+
+        view = Matrix_Camera_View(cameraLivre.getPositionVector(), cameraLivre.getViewVector(), cameraLivre.getUpVector());
+
+        // Agora computamos a matriz de Projeção.
+        glm::mat4 projection;
+
+        // Note que, no sistema de coordenadas da câmera, os planos near e far
+        // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
+        float nearplane = -0.1f;  // Posição do "near plane"
+        float farplane = -100.0f; // Posição do "far plane"
+
+        // Projeção Perspectiva.
+        // Para definição do field of view (FOV), veja slides 205-215 do documento Aula_09_Projecoes.pdf.
+        float field_of_view = 3.141592 / 3.0f;
+        projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
+
+        // Enviamos as matrizes "view" e "projection" para a placa de vídeo
+        // (GPU). Veja o arquivo "shader_vertex.glsl", onde estas são
+        // efetivamente aplicadas em todos os pontos.
+        glUniformMatrix4fv(g_view_uniform, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(g_projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
+
+        glm::mat4 model = Matrix_Identity(); // Transformação inicial = identidade.
+
+        /* Draw wall */
+        for (int i = 0; i < walls.size(); i++)
+        {
+            RectangularObject wall = walls[i];
+
+            model = wall.getModelMatrix() * Matrix_Scale(0.5, 0.5, 0.5);
+            glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            glUniform1i(g_object_id_uniform, 0);
+            DrawVirtualObject("Cube");
+            model = Matrix_Identity(); // Transformação inicial = identidade.
+        }
+
+        /* Draw boxes */
+        for (int i = 0; i < boxes.size(); i++)
+        {
+            model = boxes[i].getModelMatrix() * Matrix_Scale(0.5, 0.5, 0.5);
+            glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            glUniform1i(g_object_id_uniform, 1);
+            DrawVirtualObject("Cube");
+            model = Matrix_Identity();
+        }
+
+        /* Draw checkpoints */
+        for (int i = 0; i < checkpoints.size(); i++)
+        {
+            model = checkpoints[i].getModelMatrix() * Matrix_Scale(0.4, 0.4, 0.4);
+
+            glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
+            glUniform1i(g_object_id_uniform, 2);
+            DrawVirtualObject("button");
+            model = Matrix_Identity(); // Transformação inicial = identidade.
+        }
+
+        /* Draw player */
+        glm::mat4 playerM = player.asRectangularObject().getModelMatrix() * Matrix_Scale(0.3, 0.19047619, 0.15) * Matrix_Rotate_Y(M_PI / 2);
+        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(playerM));
+        glUniform1i(g_object_id_uniform, 3);
+        DrawVirtualObject("Forklifter_Cylinder.001");
+
+        glm::vec4 p_model(0.5f, 0.5f, 0.5f, 1.0f);
+        TextRendering_ShowModelViewProjection(window, projection, view, model, p_model);
+
+        TextRendering_ShowFramesPerSecond(window);
+        TextRendering_FreeCamera(window, &player.getCamera());
+        glfwSwapBuffers(window);
+
+        glfwPollEvents();
+
+        // Baseado no slide 81 da aula 16
+        glm::vec3 newPos = (1 - t) * (1 - t) * (1 - t) * bezierPoints[0] + 
+            3 * t * (1 - t) * (1 - t) * bezierPoints[1] + 
+            3 * t * t * (1 - t) * bezierPoints[2] + 
+            t * t * t * bezierPoints[3];
+
+        cameraLivre.setPosition(newPos.x, newPos.y, newPos.z);
+        cameraLivre.setCameraTheta(5.0f*step);
+    }
+
+    freeCam = false;
 }
 
 // Número de texturas carregadas pela função LoadTextureImage()
@@ -491,10 +597,6 @@ int main()
     ComputeNormals(&stapler);
     BuildTrianglesAndAddToVirtualScene(&stapler);
 
-    ObjModel bunny("../../data/bunny.obj");
-    ComputeNormals(&bunny);
-    BuildTrianglesAndAddToVirtualScene(&bunny);
-
     // Inicializamos o código para renderização de texto.
     TextRendering_Init();
 
@@ -511,6 +613,12 @@ int main()
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
+        if (shouldShowMapBezierOverview)
+        {
+            showMapBezierOverview(window);
+            shouldShowMapBezierOverview = false;
+        }
+
         if (rotateLeft && timeT > 0)
         {
             player.getCamera().setCameraTheta(-M_PI / 180 * 3);
