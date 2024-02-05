@@ -212,7 +212,7 @@ int fileNumber = 1;
 bool g_UsePerspectiveProjection = true;
 
 // Variável que controla se o texto informativo será mostrado na tela.
-bool g_ShowInfoText = true;
+bool g_ShowInfoText = false;
 
 // Variáveis que definem um programa de GPU (shaders). Veja função LoadShadersFromFiles().
 GLuint g_GpuProgramID = 0;
@@ -398,7 +398,7 @@ bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
     return true;
 }
 
-void showMapBezierOverview(GLFWwindow *window, float step = 0.01f)
+void showMapBezierOverview(GLFWwindow *window, float step = 0.005f)
 {
     glm::vec3 bezierPoints[4] = {
         glm::vec3(10.f, 60, 40),
@@ -478,6 +478,11 @@ void showMapBezierOverview(GLFWwindow *window, float step = 0.01f)
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(playerM));
         glUniform1i(g_object_id_uniform, 3);
         DrawVirtualObject("Forklifter_Cylinder.001");
+
+        glm::mat4 a = Matrix_Identity() * Matrix_Translate(0, -3, 0) * Matrix_Scale(300, 0.1, 200);
+        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(a));
+        glUniform1i(g_object_id_uniform, 4);
+        DrawVirtualObject("Cube");
 
         glm::vec4 p_model(0.5f, 0.5f, 0.5f, 1.0f);
         TextRendering_ShowModelViewProjection(window, projection, view, model, p_model);
@@ -584,6 +589,7 @@ int main()
     LoadTextureImage("../../data/metal.jpeg");   // TextureImage0
     LoadTextureImage("../../data/stapler.jpeg"); // TextureImage0
     LoadTextureImage("../../data/button.jpeg");  // TextureImage0
+    LoadTextureImage("../../data/asfalto.jpg");  // TextureImage0
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel cubeModel("../../data/cube.obj");
@@ -800,6 +806,11 @@ int main()
         glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(playerM));
         glUniform1i(g_object_id_uniform, 3);
         DrawVirtualObject("Forklifter_Cylinder.001");
+
+        glm::mat4 a = Matrix_Identity() * Matrix_Translate(0, -3, 0) * Matrix_Scale(300, 0.1, 200);
+        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(a));
+        glUniform1i(g_object_id_uniform, 4);
+        DrawVirtualObject("Cube");
 
         // Neste ponto a matriz model recuperada é a matriz inicial (translação do torso)
 
@@ -1509,6 +1520,7 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage2"), 2);
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage3"), 3);
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage4"), 4);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage5"), 5);
     glUseProgram(0);
 }
 
@@ -1687,11 +1699,11 @@ void LoadTextureImage(const char *filename)
     glGenSamplers(1, &sampler_id);
 
     // Veja slides 95-96 do documento Aula_20_Mapeamento_de_Texturas.pdf
-    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 
     // Parâmetros de amostragem da textura.
-    glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glSamplerParameteri(sampler_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // Agora enviamos a imagem lida do disco para a GPU
