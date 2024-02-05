@@ -202,6 +202,9 @@ bool freeCam = false;
 bool rotateLeft = false;
 bool rotateRight = false;
 bool wIsPressed = false;
+bool aIsPressed = false;
+bool sIsPressed = false;
+bool dIsPressed = false;
 int timeT = 0;
 int fileNumber = 1;
 
@@ -209,7 +212,7 @@ int fileNumber = 1;
 bool g_UsePerspectiveProjection = true;
 
 // Variável que controla se o texto informativo será mostrado na tela.
-bool g_ShowInfoText = false;
+bool g_ShowInfoText = true;
 
 // Variáveis que definem um programa de GPU (shaders). Veja função LoadShadersFromFiles().
 GLuint g_GpuProgramID = 0;
@@ -322,6 +325,7 @@ void checkLevelFinished()
     {
         wIsPressed = false;
         timeT = 0;
+        cameraLivre = Camera(3.13, 2.0f, 0, 50, 10.f, 60, 40);
         readObjectsFromFile("../../data/" + std::to_string(fileNumber) + ".txt", player, walls, boxes, checkpoints);
         shouldShowMapBezierOverview = true;
     }
@@ -394,23 +398,24 @@ bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
     return true;
 }
 
-void showMapBezierOverview(GLFWwindow *window, float step = 0.001f) {
+void showMapBezierOverview(GLFWwindow *window, float step = 0.01f)
+{
     glm::vec3 bezierPoints[4] = {
         glm::vec3(10.f, 60, 40),
         glm::vec3(-80.0f, 50, 20),
         glm::vec3(60.0f, 30, -10),
-        glm::vec3(30.0f, 60, 30)
-    };
+        glm::vec3(45.0f, 40, 18)};
     freeCam = true;
 
-    for (float t = 0.0f; t <= 1.0f; t += step) { 
+    glm::mat4 view = Matrix_Camera_View(cameraLivre.getPositionVector(), cameraLivre.getViewVector(), cameraLivre.getUpVector());
+
+    for (float t = 0.0f; t <= 1.2f; t += step)
+    {
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(g_GpuProgramID);
 
         cameraLivre.updateView();
-
-        glm::mat4 view = Matrix_Camera_View(player.getCamera().getPositionVector(), player.getCamera().getViewVector(), player.getCamera().getUpVector());
 
         view = Matrix_Camera_View(cameraLivre.getPositionVector(), cameraLivre.getViewVector(), cameraLivre.getUpVector());
 
@@ -484,14 +489,16 @@ void showMapBezierOverview(GLFWwindow *window, float step = 0.001f) {
         glfwPollEvents();
 
         // Baseado no slide 81 da aula 16
-        glm::vec3 newPos = (1 - t) * (1 - t) * (1 - t) * bezierPoints[0] + 
-            3 * t * (1 - t) * (1 - t) * bezierPoints[1] + 
-            3 * t * t * (1 - t) * bezierPoints[2] + 
-            t * t * t * bezierPoints[3];
+        glm::vec3 newPos = (1 - t) * (1 - t) * (1 - t) * bezierPoints[0] +
+                           3 * t * (1 - t) * (1 - t) * bezierPoints[1] +
+                           3 * t * t * (1 - t) * bezierPoints[2] +
+                           t * t * t * bezierPoints[3];
 
         cameraLivre.setPosition(newPos.x, newPos.y, newPos.z);
-        cameraLivre.setCameraTheta(5.0f*step);
+        cameraLivre.setCameraTheta(5.0f * step);
     }
+
+    cameraLookAt = cameraLivre;
 
     freeCam = false;
 }
@@ -613,6 +620,23 @@ int main()
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
+        if (wIsPressed && freeCam)
+        {
+            cameraLivre.moveToViewVector(FORWARD, 1.0f);
+        }
+        if (aIsPressed && freeCam)
+        {
+            cameraLivre.moveToViewVector(LEFT, 1.0f);
+        }
+        if (sIsPressed && freeCam)
+        {
+            cameraLivre.moveToViewVector(BACKWARD, 1.0f);
+        }
+        if (dIsPressed && freeCam)
+        {
+            cameraLivre.moveToViewVector(RIGHT, 1.0f);
+        }
+
         if (shouldShowMapBezierOverview)
         {
             showMapBezierOverview(window);
@@ -639,7 +663,7 @@ int main()
             }
             timeT--;
         }
-        else
+        else if (!freeCam)
         {
             rotateLeft = false;
             rotateRight = false;
@@ -789,7 +813,7 @@ int main()
         // Imprimimos na tela informação sobre o número de quadros renderizados
         // por segundo (frames per second).
         TextRendering_ShowFramesPerSecond(window);
-        TextRendering_FreeCamera(window, &player.getCamera());
+        TextRendering_FreeCamera(window, &cameraLivre);
 
         // O framebuffer onde OpenGL executa as operações de renderização não
         // é o mesmo que está sendo mostrado para o usuário, caso contrário
@@ -932,7 +956,7 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
         if (freeCam)
         {
             cameraLivre.setCameraTheta(0.01f * dx);
-            cameraLivre.setCameraPhi(0.01f * dy);
+            cameraLivre.setCameraPhi(0.01f * -dy);
         }
         else if (lookAt)
         {
@@ -1001,12 +1025,9 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     }
     if (key == GLFW_KEY_W && action == GLFW_PRESS && !wIsPressed)
     {
-        if (freeCam)
+        wIsPressed = true;
+        if (!testPlayerCollisionWithWalls(player.getDirection()) && rotateLeft == false && rotateRight == false && !freeCam)
         {
-            cameraLivre.moveToViewVector(FORWARD, 5.0f);
-        }
-        else if (!testPlayerCollisionWithWalls(player.getDirection()) && rotateLeft == false && rotateRight == false ) {
-            wIsPressed = true;
             timeT = 8;
         }
     }
@@ -1015,9 +1036,10 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     {
         if (freeCam)
         {
-            cameraLivre.moveToViewVector(LEFT, 5.0f);
+            aIsPressed = true;
         }
-        else {
+        else
+        {
             rotateLeft = true;
             timeT += 30;
             player.rotateLeft();
@@ -1028,9 +1050,10 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     {
         if (freeCam)
         {
-            cameraLivre.moveToViewVector(RIGHT, 5.0f);
+            dIsPressed = true;
         }
-        else {
+        else
+        {
             rotateRight = true;
             timeT += 30;
             player.rotateRight();
@@ -1041,14 +1064,32 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     {
         if (freeCam)
         {
-            cameraLivre.moveToViewVector(BACKWARD, 5.0f);
+            sIsPressed = true;
         }
         // S has no functionality in player movement
     }
 
+    if (key == GLFW_KEY_W && action == GLFW_RELEASE && freeCam)
+    {
+        wIsPressed = false;
+    }
+    if (key == GLFW_KEY_A && action == GLFW_RELEASE && freeCam)
+    {
+        aIsPressed = false;
+    }
+    if (key == GLFW_KEY_S && action == GLFW_RELEASE && freeCam)
+    {
+        sIsPressed = false;
+    }
+    if (key == GLFW_KEY_D && action == GLFW_RELEASE && freeCam)
+    {
+        dIsPressed = false;
+    }
+
     if (key == GLFW_KEY_C && action == GLFW_PRESS)
     {
-        if (freeCam) {
+        if (freeCam)
+        {
             freeCam = false;
         }
         lookAt = !lookAt;
