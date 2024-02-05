@@ -940,6 +940,9 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
 
     if (key == GLFW_KEY_C && action == GLFW_PRESS)
     {
+        if (freeCam) {
+            freeCam = false;
+        }
         lookAt = !lookAt;
     }
 
