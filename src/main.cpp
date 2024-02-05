@@ -193,7 +193,9 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // renderização.
 Player player(0, 0, 0, FORWARD);
 Camera cameraLookAt(3.13, 2.0f, 0, 50, 10.f, 60, 40);
+Camera cameraLivre(3.13, 2.0f, 0, 50, 10.f, 60, 40);
 bool lookAt = true;
+bool freeCam = false;
 bool rotateLeft = false;
 bool rotateRight = false;
 bool wIsPressed = false;
@@ -301,7 +303,6 @@ bool isGameFinished()
     {
         if (!testCheckpoints(boxes[i]))
         {
-            printf("box %d did not collide with checkpoint\n", i);
             // If any box still not colliding with a checkpoint, then game is not finished
             return false;
         }
@@ -572,6 +573,7 @@ int main()
 
         player.getCamera().updateView();
         cameraLookAt.updateView();
+        cameraLivre.updateView();
 
         // Abaixo definimos as varáveis que efetivamente definem a câmera virtual.
         // Veja slides 195-227 e 229-234 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
@@ -584,7 +586,11 @@ int main()
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
         glm::mat4 view = Matrix_Camera_View(player.getCamera().getPositionVector(), player.getCamera().getViewVector(), player.getCamera().getUpVector());
 
-        if (lookAt)
+        if (freeCam)
+        {
+            view = Matrix_Camera_View(cameraLivre.getPositionVector(), cameraLivre.getViewVector(), cameraLivre.getUpVector());
+        }
+        else if (lookAt)
         {
             view = Matrix_Camera_View(cameraLookAt.getPositionVector(), cameraLookAt.getViewVector(), cameraLookAt.getUpVector());
         }
@@ -815,7 +821,12 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
         float dx = xpos - g_LastCursorPosX;
         float dy = ypos - g_LastCursorPosY;
         float rotationIncrement = 90.0f; //
-        if (lookAt)
+        if (freeCam)
+        {
+            cameraLivre.setCameraTheta(0.01f * dx);
+            cameraLivre.setCameraPhi(0.01f * dy);
+        }
+        else if (lookAt)
         {
             cameraLookAt.setCameraTheta(0.01f * dx);
         }
@@ -880,29 +891,61 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     {
         g_ShowInfoText = !g_ShowInfoText;
     }
-    if (key == GLFW_KEY_W && action == GLFW_PRESS && !testPlayerCollisionWithWalls(player.getDirection()) && rotateLeft == false && rotateRight == false && !wIsPressed)
+    if (key == GLFW_KEY_W && action == GLFW_PRESS && !wIsPressed)
     {
-        wIsPressed = true;
-        timeT = 8;
+        if (freeCam)
+        {
+            cameraLivre.moveToViewVector(FORWARD, 5.0f);
+        }
+        else if (!testPlayerCollisionWithWalls(player.getDirection()) && rotateLeft == false && rotateRight == false ) {
+            wIsPressed = true;
+            timeT = 8;
+        }
     }
 
     if (key == GLFW_KEY_A && action == GLFW_PRESS && rotateRight == false && !wIsPressed)
     {
-        rotateLeft = true;
-        timeT += 30;
-        player.rotateLeft();
+        if (freeCam)
+        {
+            cameraLivre.moveToViewVector(LEFT, 5.0f);
+        }
+        else {
+            rotateLeft = true;
+            timeT += 30;
+            player.rotateLeft();
+        }
     }
 
     if (key == GLFW_KEY_D && action == GLFW_PRESS && rotateLeft == false && !wIsPressed)
     {
-        rotateRight = true;
-        timeT += 30;
-        player.rotateRight();
+        if (freeCam)
+        {
+            cameraLivre.moveToViewVector(RIGHT, 5.0f);
+        }
+        else {
+            rotateRight = true;
+            timeT += 30;
+            player.rotateRight();
+        }
+    }
+
+    if (key == GLFW_KEY_S && action == GLFW_PRESS && !wIsPressed)
+    {
+        if (freeCam)
+        {
+            cameraLivre.moveToViewVector(BACKWARD, 5.0f);
+        }
+        // S has no functionality in player movement
     }
 
     if (key == GLFW_KEY_C && action == GLFW_PRESS)
     {
         lookAt = !lookAt;
+    }
+
+    if (key == GLFW_KEY_V && action == GLFW_PRESS)
+    {
+        freeCam = !freeCam;
     }
 
     if (key == GLFW_KEY_R && action == GLFW_PRESS)
