@@ -158,8 +158,8 @@ void main()
 
         else    if ( object_id == 4 )
     {
-        U = 150/texcoords.x;
-        V = 150/texcoords.y;
+        U = 200*texcoords.x;
+        V = 200*texcoords.y;
 
         vec3 Kd0 = texture(TextureImage5, vec2(U,V)).rgb;
         Ks = vec3(1.0,1.0,1.0);
