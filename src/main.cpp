@@ -196,9 +196,9 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // renderização.
 Player player(0, 0, 0, FORWARD);
 Camera cameraLookAt(3.13, 2.0f, 0, 50, 10.f, 60, 40);
-Camera cameraLivre(3.13, 2.0f, 0, 50, 10.f, 60, 40);
+Camera cameraLivre(6.45, 14.68f, 0, 50, -14.20f, 60, 40);
 bool lookAt = true;
-bool freeCam = false;
+bool freeCam = true;
 bool rotateLeft = false;
 bool rotateRight = false;
 bool wIsPressed = false;
@@ -265,7 +265,7 @@ bool testPlayerCollisionWithWalls(DIRECTION direction)
 
     for (int i = 0; i < walls.size(); i++)
     {
-        if (testAABBColision(player_clone->asRectangularObject(), walls[i]))
+        if (testAABBCollision(player_clone->asRectangularObject(), walls[i]))
         {
             printf("Collision with wall!\n");
             return true;
@@ -282,7 +282,7 @@ bool testCollisionWithWalls(RectangularObject obj, DIRECTION direction, glm::vec
 
     for (int i = 0; i < walls.size(); i++)
     {
-        if (testAABBColision(obj_clone, walls[i]))
+        if (testAABBCollision(obj_clone, walls[i]))
         {
             printf("Object Collision with wall!\n");
             return true;
@@ -343,7 +343,7 @@ bool testBoxCollisionWithBoxes(int box_id, DIRECTION direction, glm::vec4 view)
         {
             continue;
         }
-        if (testAABBColision(box, boxes[i]))
+        if (testAABBCollision(box, boxes[i]))
         {
             return true;
         }
@@ -374,7 +374,7 @@ bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
 
     for (int i = 0; i < boxes.size(); i++)
     {
-        if (testAABBColision(player_clone->asRectangularObject(), boxes[i]))
+        if (testAABBCollision(player_clone->asRectangularObject(), boxes[i]))
         {
             printf("Player collided with box!\n");
             bool didNotCollideWithWalls = !testCollisionWithWalls(boxes[i], player.getDirection(), viewVector);
@@ -396,116 +396,6 @@ bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
         }
     }
     return true;
-}
-
-void showMapBezierOverview(GLFWwindow *window, float step = 0.005f)
-{
-    glm::vec3 bezierPoints[4] = {
-        glm::vec3(10.f, 60, 40),
-        glm::vec3(-80.0f, 50, 20),
-        glm::vec3(60.0f, 30, -10),
-        glm::vec3(45.0f, 40, 18)};
-    freeCam = true;
-
-    glm::mat4 view = Matrix_Camera_View(cameraLivre.getPositionVector(), cameraLivre.getViewVector(), cameraLivre.getUpVector());
-
-    for (float t = 0.0f; t <= 1.2f; t += step)
-    {
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glUseProgram(g_GpuProgramID);
-
-        cameraLivre.updateView();
-
-        view = Matrix_Camera_View(cameraLivre.getPositionVector(), cameraLivre.getViewVector(), cameraLivre.getUpVector());
-
-        // Agora computamos a matriz de Projeção.
-        glm::mat4 projection;
-
-        // Note que, no sistema de coordenadas da câmera, os planos near e far
-        // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
-        float nearplane = -0.1f;  // Posição do "near plane"
-        float farplane = -100.0f; // Posição do "far plane"
-
-        // Projeção Perspectiva.
-        // Para definição do field of view (FOV), veja slides 205-215 do documento Aula_09_Projecoes.pdf.
-        float field_of_view = 3.141592 / 3.0f;
-        projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
-
-        // Enviamos as matrizes "view" e "projection" para a placa de vídeo
-        // (GPU). Veja o arquivo "shader_vertex.glsl", onde estas são
-        // efetivamente aplicadas em todos os pontos.
-        glUniformMatrix4fv(g_view_uniform, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(g_projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
-
-        glm::mat4 model = Matrix_Identity(); // Transformação inicial = identidade.
-
-        /* Draw wall */
-        for (int i = 0; i < walls.size(); i++)
-        {
-            RectangularObject wall = walls[i];
-
-            model = wall.getModelMatrix() * Matrix_Scale(0.5, 0.5, 0.5);
-            glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-            glUniform1i(g_object_id_uniform, 0);
-            DrawVirtualObject("Cube");
-            model = Matrix_Identity(); // Transformação inicial = identidade.
-        }
-
-        /* Draw boxes */
-        for (int i = 0; i < boxes.size(); i++)
-        {
-            model = boxes[i].getModelMatrix() * Matrix_Scale(0.5, 0.5, 0.5);
-            glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-            glUniform1i(g_object_id_uniform, 1);
-            DrawVirtualObject("Cube");
-            model = Matrix_Identity();
-        }
-
-        /* Draw checkpoints */
-        for (int i = 0; i < checkpoints.size(); i++)
-        {
-            model = checkpoints[i].getModelMatrix() * Matrix_Scale(0.4, 0.4, 0.4);
-
-            glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-            glUniform1i(g_object_id_uniform, 2);
-            DrawVirtualObject("button");
-            model = Matrix_Identity(); // Transformação inicial = identidade.
-        }
-
-        /* Draw player */
-        glm::mat4 playerM = player.asRectangularObject().getModelMatrix() * Matrix_Scale(0.3, 0.19047619, 0.15) * Matrix_Rotate_Y(M_PI / 2);
-        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(playerM));
-        glUniform1i(g_object_id_uniform, 3);
-        DrawVirtualObject("Forklifter_Cylinder.001");
-
-        glm::mat4 a = Matrix_Identity() * Matrix_Translate(0, -3, 0) * Matrix_Scale(300, 0.1, 200);
-        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(a));
-        glUniform1i(g_object_id_uniform, 4);
-        DrawVirtualObject("Cube");
-
-        glm::vec4 p_model(0.5f, 0.5f, 0.5f, 1.0f);
-        TextRendering_ShowModelViewProjection(window, projection, view, model, p_model);
-
-        TextRendering_ShowFramesPerSecond(window);
-        TextRendering_FreeCamera(window, &player.getCamera());
-        glfwSwapBuffers(window);
-
-        glfwPollEvents();
-
-        // Baseado no slide 81 da aula 16
-        glm::vec3 newPos = (1 - t) * (1 - t) * (1 - t) * bezierPoints[0] +
-                           3 * t * (1 - t) * (1 - t) * bezierPoints[1] +
-                           3 * t * t * (1 - t) * bezierPoints[2] +
-                           t * t * t * bezierPoints[3];
-
-        cameraLivre.setPosition(newPos.x, newPos.y, newPos.z);
-        cameraLivre.setCameraTheta(5.0f * step);
-    }
-
-    cameraLookAt = cameraLivre;
-
-    freeCam = false;
 }
 
 // Número de texturas carregadas pela função LoadTextureImage()
@@ -621,32 +511,39 @@ int main()
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    readObjectsFromFile("../../data/" + std::to_string(fileNumber) + ".txt", player, walls, boxes, checkpoints);
+    readObjectsFromFile("../../data/" + std::to_string(1) + ".txt", player, walls, boxes, checkpoints);
+    glm::vec3 bezierPoints[4] = {
+        glm::vec3(-40, 30, 20),
+        glm::vec3(-40, 10, 20),
+        glm::vec3(40, 30, -6),
+        glm::vec3(50.0f, 40, 4)};
+
+    float t = glfwGetTime() + 1;
+    float now = glfwGetTime();
 
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
-        if (wIsPressed && freeCam)
-        {
-            cameraLivre.moveToViewVector(FORWARD, 1.0f);
-        }
-        if (aIsPressed && freeCam)
-        {
-            cameraLivre.moveToViewVector(LEFT, 1.0f);
-        }
-        if (sIsPressed && freeCam)
-        {
-            cameraLivre.moveToViewVector(BACKWARD, 1.0f);
-        }
-        if (dIsPressed && freeCam)
-        {
-            cameraLivre.moveToViewVector(RIGHT, 1.0f);
-        }
 
-        if (shouldShowMapBezierOverview)
+        if (now <= t)
         {
-            showMapBezierOverview(window);
+            glm::vec3 newPos = (1 - now) * (1 - now) * (1 - now) * bezierPoints[0] +
+                               3 * now * (1 - now) * (1 - now) * bezierPoints[1] +
+                               3 * now * now * (1 - now) * bezierPoints[2] +
+                               now * now * now * bezierPoints[3];
+
+            cameraLivre.setPosition(newPos.x, newPos.y, newPos.z);
+            cameraLivre.setCameraTheta(0.01);
+            cameraLivre.updateView();
+
+            now = glfwGetTime() / 4;
+        }
+        else if (shouldShowMapBezierOverview)
+        {
             shouldShowMapBezierOverview = false;
+            cameraLookAt = cameraLivre;
+            freeCam = false;
+            lookAt = true;
         }
 
         if (rotateLeft && timeT > 0)
@@ -807,10 +704,28 @@ int main()
         glUniform1i(g_object_id_uniform, 3);
         DrawVirtualObject("Forklifter_Cylinder.001");
 
-        glm::mat4 a = Matrix_Identity() * Matrix_Translate(0, -3, 0) * Matrix_Scale(300, 0.1, 200);
-        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(a));
+        RectangularObject a = {.width = 300, .height = 0.1, .depth = 200, .x = 0, .y = -3, .z = 0, .rotation = 0};
+
+        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(a.getModelMatrix()));
         glUniform1i(g_object_id_uniform, 4);
         DrawVirtualObject("Cube");
+
+        if (wIsPressed && freeCam && testePointPlaneCollision(cameraLivre.getCenterPoint(), -cameraLivre.getViewVector(), a))
+        {
+            cameraLivre.moveToViewVector(FORWARD, 1.0f);
+        }
+        if (aIsPressed && freeCam)
+        {
+            cameraLivre.moveToViewVector(LEFT, 1.0f);
+        }
+        if (sIsPressed && freeCam && testePointPlaneCollision(cameraLivre.getCenterPoint(), cameraLivre.getViewVector(), a))
+        {
+            cameraLivre.moveToViewVector(BACKWARD, 1.0f);
+        }
+        if (dIsPressed && freeCam)
+        {
+            cameraLivre.moveToViewVector(RIGHT, 1.0f);
+        }
 
         // Neste ponto a matriz model recuperada é a matriz inicial (translação do torso)
 
@@ -1217,7 +1132,7 @@ void TextRendering_ShowFramesPerSecond(GLFWwindow *window)
     float lineheight = TextRendering_LineHeight(window);
     float charwidth = TextRendering_CharWidth(window);
 
-    TextRendering_PrintString(window, buffer, 1.0f - (numchars + 1) * charwidth, 1.0f - lineheight, 1.0f);
+    TextRendering_PrintString(window, buffer, 1.0f - (numchars + 1) * charwidth, 1.0f - lineheight - 2, 2.0f);
 }
 
 void TextRendering_FreeCamera(GLFWwindow *window, Camera *camera)

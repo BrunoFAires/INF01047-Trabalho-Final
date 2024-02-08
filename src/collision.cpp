@@ -1,7 +1,7 @@
 #include "collision.h"
 #include <math.h>
 
-bool testAABBColision(RectangularObject obj1, RectangularObject obj2)
+bool testAABBCollision(RectangularObject obj1, RectangularObject obj2)
 {
     glm::mat4 model1 = obj1.getModelMatrix();
     glm::mat4 model2 = obj2.getModelMatrix();
@@ -38,6 +38,20 @@ bool testeSphereCollision(glm::vec3 point, SphereObject obj2)
                           pow(point.z - position2.z, 2));
 
     return disntace <= obj2.radius;
+}
+
+bool isMovingTowardPlane(const glm::vec3 &movementDirection, const glm::vec3 &normal)
+{
+    float dotProduct = glm::dot(normal, movementDirection);
+    return dotProduct < 0.0f; // Se for negativo, o ponto está se movendo em direção ao plano
+}
+
+bool testePointPlaneCollision(glm::vec3 point, glm::vec3 movementDirection, RectangularObject obj2)
+{
+    glm::vec3 planeVector = glm::vec3(obj2.getCenterPoint().x, obj2.getCenterPoint().y * -2, obj2.getCenterPoint().z);
+    float distance = planeVector.x * point.x + planeVector.y * point.y + planeVector.z * point.z + 0.1;
+
+    return distance >= 0 || isMovingTowardPlane(movementDirection, planeVector) > 0;
 }
 
 void printMatrix(const glm::mat4 &matrix)
