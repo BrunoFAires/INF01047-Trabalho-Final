@@ -116,6 +116,13 @@ struct ObjModel
     }
 };
 
+struct BoxToMove
+{
+    int boxId;
+    int step;
+    DIRECTION dir;
+};
+
 void ComputeNormals(ObjModel *model);                // Computa normais de um ObjModel, caso não existam.
 void BuildTrianglesAndAddToVirtualScene(ObjModel *); // Constrói representação de um ObjModel como malha de triângulos para renderização
 void DrawVirtualObject(const char *object_name);
@@ -196,12 +203,15 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // renderização.
 Player player(0, 0, 0, FORWARD);
 Camera cameraLookAt(3.13, 2.0f, 0, 50, 10.f, 60, 40);
-Camera cameraLivre(3.13, 2.0f, 0, 50, 10.f, 60, 40);
+Camera cameraLivre(6.45, 14.68f, 0, 50, -14.20f, 60, 40);
 bool lookAt = true;
-bool freeCam = false;
+bool freeCam = true;
 bool rotateLeft = false;
 bool rotateRight = false;
 bool wIsPressed = false;
+bool aIsPressed = false;
+bool sIsPressed = false;
+bool dIsPressed = false;
 int timeT = 0;
 int fileNumber = 1;
 
@@ -225,8 +235,11 @@ float wallWidth = 20.0f;
 float wallHeight = 5.0f;
 
 std::vector<RectangularObject> walls;
+std::vector<BoxToMove> boxesToMove;
 bool isLastLevelFinished = false;
-
+float t = glfwGetTime() + 1.45;
+float now = glfwGetTime();
+bool batata = false;
 /* Boxes */
 // Quanto maior X, mais pra direita
 // Quanto maior Y, mais pra cima
@@ -262,7 +275,7 @@ bool testPlayerCollisionWithWalls(DIRECTION direction)
 
     for (int i = 0; i < walls.size(); i++)
     {
-        if (testAABBColision(player_clone->asRectangularObject(), walls[i]))
+        if (testAABBCollision(player_clone->asRectangularObject(), walls[i]))
         {
             printf("Collision with wall!\n");
             return true;
@@ -275,11 +288,11 @@ bool testCollisionWithWalls(RectangularObject obj, DIRECTION direction, glm::vec
 {
     RectangularObject obj_clone = obj.clone();
 
-    obj_clone.move(direction, viewVector);
+    obj_clone.move(direction);
 
     for (int i = 0; i < walls.size(); i++)
     {
-        if (testAABBColision(obj_clone, walls[i]))
+        if (testAABBCollision(obj_clone, walls[i]))
         {
             printf("Object Collision with wall!\n");
             return true;
@@ -320,10 +333,16 @@ void checkLevelFinished()
 {
     if (isGameFinished())
     {
+        glfwSetTime(0);
         wIsPressed = false;
         timeT = 0;
+        cameraLivre = Camera(6.45, 14.68f, 0, 50, -14.20f, 60, 40);
         readObjectsFromFile("../../data/" + std::to_string(fileNumber) + ".txt", player, walls, boxes, checkpoints);
         shouldShowMapBezierOverview = true;
+        t = glfwGetTime() + 1.45;
+        now = glfwGetTime();
+        lookAt = false;
+        freeCam = true;
     }
 }
 
@@ -331,7 +350,7 @@ bool testBoxCollisionWithBoxes(int box_id, DIRECTION direction, glm::vec4 view)
 {
     RectangularObject box = boxes[box_id].clone();
 
-    box.move(direction, view);
+    box.move(direction);
 
     for (int i = 0; i < boxes.size(); i++)
     {
@@ -339,7 +358,7 @@ bool testBoxCollisionWithBoxes(int box_id, DIRECTION direction, glm::vec4 view)
         {
             continue;
         }
-        if (testAABBColision(box, boxes[i]))
+        if (testAABBCollision(box, boxes[i]))
         {
             return true;
         }
@@ -370,19 +389,20 @@ bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
 
     for (int i = 0; i < boxes.size(); i++)
     {
-        if (testAABBColision(player_clone->asRectangularObject(), boxes[i]))
+        if (testAABBCollision(player_clone->asRectangularObject(), boxes[i]))
         {
             printf("Player collided with box!\n");
             bool didNotCollideWithWalls = !testCollisionWithWalls(boxes[i], player.getDirection(), viewVector);
             bool didNotCollideWithOtherBoxes = !testBoxCollisionWithBoxes(i, player.getDirection(), viewVector);
             if (didNotCollideWithWalls && didNotCollideWithOtherBoxes)
             {
-                boxes[i].move(player.getDirection(), viewVector);
-                if (testCheckpoints(boxes[i]))
-                {
-                    printf("You reached a checkpoint, keep going!\n");
-                    checkLevelFinished();
-                }
+                BoxToMove box = {
+                    .boxId = i,
+                    .step = 4,
+                    .dir = player.getDirection()};
+                boxesToMove.push_back(box);
+                /*  boxes[i]
+                     .move(player.getDirection(), viewVector); */
                 return true;
             }
             else
@@ -392,108 +412,6 @@ bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
         }
     }
     return true;
-}
-
-void showMapBezierOverview(GLFWwindow *window, float step = 0.001f) {
-    glm::vec3 bezierPoints[4] = {
-        glm::vec3(10.f, 60, 40),
-        glm::vec3(-80.0f, 50, 20),
-        glm::vec3(60.0f, 30, -10),
-        glm::vec3(30.0f, 60, 30)
-    };
-    freeCam = true;
-
-    for (float t = 0.0f; t <= 1.0f; t += step) { 
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glUseProgram(g_GpuProgramID);
-
-        cameraLivre.updateView();
-
-        glm::mat4 view = Matrix_Camera_View(player.getCamera().getPositionVector(), player.getCamera().getViewVector(), player.getCamera().getUpVector());
-
-        view = Matrix_Camera_View(cameraLivre.getPositionVector(), cameraLivre.getViewVector(), cameraLivre.getUpVector());
-
-        // Agora computamos a matriz de Projeção.
-        glm::mat4 projection;
-
-        // Note que, no sistema de coordenadas da câmera, os planos near e far
-        // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
-        float nearplane = -0.1f;  // Posição do "near plane"
-        float farplane = -100.0f; // Posição do "far plane"
-
-        // Projeção Perspectiva.
-        // Para definição do field of view (FOV), veja slides 205-215 do documento Aula_09_Projecoes.pdf.
-        float field_of_view = 3.141592 / 3.0f;
-        projection = Matrix_Perspective(field_of_view, g_ScreenRatio, nearplane, farplane);
-
-        // Enviamos as matrizes "view" e "projection" para a placa de vídeo
-        // (GPU). Veja o arquivo "shader_vertex.glsl", onde estas são
-        // efetivamente aplicadas em todos os pontos.
-        glUniformMatrix4fv(g_view_uniform, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(g_projection_uniform, 1, GL_FALSE, glm::value_ptr(projection));
-
-        glm::mat4 model = Matrix_Identity(); // Transformação inicial = identidade.
-
-        /* Draw wall */
-        for (int i = 0; i < walls.size(); i++)
-        {
-            RectangularObject wall = walls[i];
-
-            model = wall.getModelMatrix() * Matrix_Scale(0.5, 0.5, 0.5);
-            glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-            glUniform1i(g_object_id_uniform, 0);
-            DrawVirtualObject("Cube");
-            model = Matrix_Identity(); // Transformação inicial = identidade.
-        }
-
-        /* Draw boxes */
-        for (int i = 0; i < boxes.size(); i++)
-        {
-            model = boxes[i].getModelMatrix() * Matrix_Scale(0.5, 0.5, 0.5);
-            glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-            glUniform1i(g_object_id_uniform, 1);
-            DrawVirtualObject("Cube");
-            model = Matrix_Identity();
-        }
-
-        /* Draw checkpoints */
-        for (int i = 0; i < checkpoints.size(); i++)
-        {
-            model = checkpoints[i].getModelMatrix() * Matrix_Scale(0.4, 0.4, 0.4);
-
-            glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
-            glUniform1i(g_object_id_uniform, 2);
-            DrawVirtualObject("button");
-            model = Matrix_Identity(); // Transformação inicial = identidade.
-        }
-
-        /* Draw player */
-        glm::mat4 playerM = player.asRectangularObject().getModelMatrix() * Matrix_Scale(0.3, 0.19047619, 0.15) * Matrix_Rotate_Y(M_PI / 2);
-        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(playerM));
-        glUniform1i(g_object_id_uniform, 3);
-        DrawVirtualObject("Forklifter_Cylinder.001");
-
-        glm::vec4 p_model(0.5f, 0.5f, 0.5f, 1.0f);
-        TextRendering_ShowModelViewProjection(window, projection, view, model, p_model);
-
-        TextRendering_ShowFramesPerSecond(window);
-        TextRendering_FreeCamera(window, &player.getCamera());
-        glfwSwapBuffers(window);
-
-        glfwPollEvents();
-
-        // Baseado no slide 81 da aula 16
-        glm::vec3 newPos = (1 - t) * (1 - t) * (1 - t) * bezierPoints[0] + 
-            3 * t * (1 - t) * (1 - t) * bezierPoints[1] + 
-            3 * t * t * (1 - t) * bezierPoints[2] + 
-            t * t * t * bezierPoints[3];
-
-        cameraLivre.setPosition(newPos.x, newPos.y, newPos.z);
-        cameraLivre.setCameraTheta(5.0f*step);
-    }
-
-    freeCam = false;
 }
 
 // Número de texturas carregadas pela função LoadTextureImage()
@@ -577,6 +495,7 @@ int main()
     LoadTextureImage("../../data/metal.jpeg");   // TextureImage0
     LoadTextureImage("../../data/stapler.jpeg"); // TextureImage0
     LoadTextureImage("../../data/button.jpeg");  // TextureImage0
+    LoadTextureImage("../../data/asfalto.jpg");  // TextureImage0
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel cubeModel("../../data/cube.obj");
@@ -609,14 +528,36 @@ int main()
     glFrontFace(GL_CCW);
 
     readObjectsFromFile("../../data/" + std::to_string(fileNumber) + ".txt", player, walls, boxes, checkpoints);
+    glm::vec3 bezierPoints[4] = {
+        glm::vec3(-40, 30, 20),
+        glm::vec3(-40, 10, 20),
+        glm::vec3(40, 30, -6),
+        glm::vec3(50.0f, 40, 4)};
 
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
-        if (shouldShowMapBezierOverview)
+        checkLevelFinished();
+
+        if (now <= t)
         {
-            showMapBezierOverview(window);
+            glm::vec3 newPos = (1 - now) * (1 - now) * (1 - now) * bezierPoints[0] +
+                               3 * now * (1 - now) * (1 - now) * bezierPoints[1] +
+                               3 * now * now * (1 - now) * bezierPoints[2] +
+                               now * now * now * bezierPoints[3];
+
+            cameraLivre.setPosition(newPos.x, newPos.y, newPos.z);
+            cameraLivre.setCameraTheta(0.01);
+            cameraLivre.updateView();
+
+            now = glfwGetTime() / 4;
+        }
+        else if (shouldShowMapBezierOverview)
+        {
             shouldShowMapBezierOverview = false;
+            cameraLookAt = cameraLivre;
+            freeCam = false;
+            lookAt = true;
         }
 
         if (rotateLeft && timeT > 0)
@@ -639,12 +580,25 @@ int main()
             }
             timeT--;
         }
-        else
+
+        else if (!freeCam)
         {
             rotateLeft = false;
             rotateRight = false;
             wIsPressed = false;
             timeT = 0;
+        }
+
+        for (int i = 0; i < boxesToMove.size(); i++)
+        {
+            BoxToMove boxToMove = boxesToMove[i];
+            boxesToMove.erase(boxesToMove.begin() + i);
+            if (boxToMove.step > 0)
+            {
+                boxes[boxToMove.boxId].move(boxToMove.dir);
+                boxToMove.step--;
+                boxesToMove.push_back(boxToMove);
+            }
         }
 
         if (!isGameFinished())
@@ -763,7 +717,7 @@ int main()
         /* Draw checkpoints */
         for (int i = 0; i < checkpoints.size(); i++)
         {
-            model = checkpoints[i].getModelMatrix() * Matrix_Scale(0.4, 0.4, 0.4);
+            model = checkpoints[i].getModelMatrix() * Matrix_Scale(0.4, 0.4, 0.4) * Matrix_Rotate_Y((float)glfwGetTime() * 0.1f);
 
             glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             glUniform1i(g_object_id_uniform, 2);
@@ -777,6 +731,29 @@ int main()
         glUniform1i(g_object_id_uniform, 3);
         DrawVirtualObject("Forklifter_Cylinder.001");
 
+        RectangularObject a = {.width = 300, .height = 0.1, .depth = 200, .x = 0, .y = -3, .z = 0, .rotation = 0};
+
+        glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(a.getModelMatrix()));
+        glUniform1i(g_object_id_uniform, 4);
+        DrawVirtualObject("Cube");
+
+        if (wIsPressed && freeCam && testePointPlaneCollision(cameraLivre.getCenterPoint(), -cameraLivre.getViewVector(), a))
+        {
+            cameraLivre.moveToViewVector(FORWARD, 1.0f);
+        }
+        if (aIsPressed && freeCam)
+        {
+            cameraLivre.moveToViewVector(LEFT, 1.0f);
+        }
+        if (sIsPressed && freeCam && testePointPlaneCollision(cameraLivre.getCenterPoint(), cameraLivre.getViewVector(), a))
+        {
+            cameraLivre.moveToViewVector(BACKWARD, 1.0f);
+        }
+        if (dIsPressed && freeCam)
+        {
+            cameraLivre.moveToViewVector(RIGHT, 1.0f);
+        }
+
         // Neste ponto a matriz model recuperada é a matriz inicial (translação do torso)
 
         // Agora queremos desenhar os eixos XYZ de coordenadas GLOBAIS.
@@ -789,7 +766,7 @@ int main()
         // Imprimimos na tela informação sobre o número de quadros renderizados
         // por segundo (frames per second).
         TextRendering_ShowFramesPerSecond(window);
-        TextRendering_FreeCamera(window, &player.getCamera());
+        TextRendering_FreeCamera(window, &cameraLivre);
 
         // O framebuffer onde OpenGL executa as operações de renderização não
         // é o mesmo que está sendo mostrado para o usuário, caso contrário
@@ -932,7 +909,7 @@ void CursorPosCallback(GLFWwindow *window, double xpos, double ypos)
         if (freeCam)
         {
             cameraLivre.setCameraTheta(0.01f * dx);
-            cameraLivre.setCameraPhi(0.01f * dy);
+            cameraLivre.setCameraPhi(0.01f * -dy);
         }
         else if (lookAt)
         {
@@ -1001,12 +978,9 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     }
     if (key == GLFW_KEY_W && action == GLFW_PRESS && !wIsPressed)
     {
-        if (freeCam)
+        wIsPressed = true;
+        if (!testPlayerCollisionWithWalls(player.getDirection()) && rotateLeft == false && rotateRight == false && !freeCam)
         {
-            cameraLivre.moveToViewVector(FORWARD, 5.0f);
-        }
-        else if (!testPlayerCollisionWithWalls(player.getDirection()) && rotateLeft == false && rotateRight == false ) {
-            wIsPressed = true;
             timeT = 8;
         }
     }
@@ -1015,9 +989,10 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     {
         if (freeCam)
         {
-            cameraLivre.moveToViewVector(LEFT, 5.0f);
+            aIsPressed = true;
         }
-        else {
+        else
+        {
             rotateLeft = true;
             timeT += 30;
             player.rotateLeft();
@@ -1028,9 +1003,10 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     {
         if (freeCam)
         {
-            cameraLivre.moveToViewVector(RIGHT, 5.0f);
+            dIsPressed = true;
         }
-        else {
+        else
+        {
             rotateRight = true;
             timeT += 30;
             player.rotateRight();
@@ -1041,14 +1017,32 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     {
         if (freeCam)
         {
-            cameraLivre.moveToViewVector(BACKWARD, 5.0f);
+            sIsPressed = true;
         }
         // S has no functionality in player movement
     }
 
+    if (key == GLFW_KEY_W && action == GLFW_RELEASE && freeCam)
+    {
+        wIsPressed = false;
+    }
+    if (key == GLFW_KEY_A && action == GLFW_RELEASE && freeCam)
+    {
+        aIsPressed = false;
+    }
+    if (key == GLFW_KEY_S && action == GLFW_RELEASE && freeCam)
+    {
+        sIsPressed = false;
+    }
+    if (key == GLFW_KEY_D && action == GLFW_RELEASE && freeCam)
+    {
+        dIsPressed = false;
+    }
+
     if (key == GLFW_KEY_C && action == GLFW_PRESS)
     {
-        if (freeCam) {
+        if (freeCam)
+        {
             freeCam = false;
         }
         lookAt = !lookAt;
@@ -1061,7 +1055,6 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
 
     if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
-        fileNumber--;
         readObjectsFromFile("../../data/" + std::to_string(fileNumber) + ".txt", player, walls, boxes, checkpoints);
     }
 }
@@ -1165,7 +1158,7 @@ void TextRendering_ShowFramesPerSecond(GLFWwindow *window)
     float lineheight = TextRendering_LineHeight(window);
     float charwidth = TextRendering_CharWidth(window);
 
-    TextRendering_PrintString(window, buffer, 1.0f - (numchars + 1) * charwidth, 1.0f - lineheight, 1.0f);
+    TextRendering_PrintString(window, buffer, 1.0f - (numchars + 1) * charwidth, 1.0f - lineheight - 2, 2.0f);
 }
 
 void TextRendering_FreeCamera(GLFWwindow *window, Camera *camera)
@@ -1468,6 +1461,7 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage2"), 2);
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage3"), 3);
     glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage4"), 4);
+    glUniform1i(glGetUniformLocation(g_GpuProgramID, "TextureImage5"), 5);
     glUseProgram(0);
 }
 
@@ -1646,11 +1640,11 @@ void LoadTextureImage(const char *filename)
     glGenSamplers(1, &sampler_id);
 
     // Veja slides 95-96 do documento Aula_20_Mapeamento_de_Texturas.pdf
-    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     // Parâmetros de amostragem da textura.
-    glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glSamplerParameteri(sampler_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // Agora enviamos a imagem lida do disco para a GPU
@@ -1673,7 +1667,10 @@ void LoadTextureImage(const char *filename)
 
 void readObjectsFromFile(const std::string &filename, Player &player, std::vector<RectangularObject> &rectangularObjects, std::vector<RectangularObject> &boxes, std::vector<SphereObject> &sphereObjects)
 {
-    fileNumber++;
+    if (isLastLevelFinished)
+    {
+        fileNumber++;
+    }
     rectangularObjects.clear();
     boxes.clear();
     sphereObjects.clear();

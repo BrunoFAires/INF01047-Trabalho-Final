@@ -34,6 +34,11 @@ glm::vec4 Camera::getPositionVector()
     return positionVector;
 }
 
+glm::vec3 Camera::getCenterPoint()
+{
+    return glm::vec3(positionVector.x, positionVector.y, positionVector.z);
+}
+
 glm::vec4 Camera::getViewVector()
 {
     return viewVector;
@@ -51,7 +56,7 @@ void Camera::setCameraTheta(float value)
 
 void Camera::setCameraPhi(float value)
 {
-    const float minPhi = 1.58f; 
+    const float minPhi = 1.58f;
 
     g_CameraPhi += value;
 
@@ -102,18 +107,18 @@ void Camera::moveToViewVector(DIRECTION direction, float qty)
 
     switch (direction)
     {
-        case FORWARD:
-            positionVector += glm::vec4(normalizedViewVector * qty, 0.0f);
-            break;
-        case BACKWARD:
-            positionVector -= glm::vec4(normalizedViewVector * qty, 0.0f);
-            break;
-        case LEFT:
-            positionVector += glm::vec4(normalizedLeftVector * qty, 0.0f);
-            break;
-        case RIGHT:
-            positionVector -= glm::vec4(normalizedLeftVector * qty, 0.0f);
-            break;
+    case FORWARD:
+        positionVector += glm::vec4(normalizedViewVector * qty, 0.0f);
+        break;
+    case BACKWARD:
+        positionVector -= glm::vec4(normalizedViewVector * qty, 0.0f);
+        break;
+    case LEFT:
+        positionVector += glm::vec4(normalizedLeftVector * qty, 0.0f);
+        break;
+    case RIGHT:
+        positionVector -= glm::vec4(normalizedLeftVector * qty, 0.0f);
+        break;
     }
 }
 

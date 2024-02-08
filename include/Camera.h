@@ -38,6 +38,8 @@ public:
     void updateView();
     void updatePosition();
     void restart();
+
+    glm::vec3 getCenterPoint();
 };
 
 #endif // CAMERA_H

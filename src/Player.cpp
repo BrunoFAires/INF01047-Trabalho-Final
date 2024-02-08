@@ -22,7 +22,7 @@ RectangularObject Player::asRectangularObject()
         .height = player_size,
         .depth = player_size,
         .x = positionVector.x,
-        .y = -2.0f,
+        .y = positionVector.y,
         .z = positionVector.z,
         .rotation = rotation};
 }
