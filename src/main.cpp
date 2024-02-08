@@ -116,6 +116,13 @@ struct ObjModel
     }
 };
 
+struct BoxToMove
+{
+    int boxId;
+    int step;
+    DIRECTION dir;
+};
+
 void ComputeNormals(ObjModel *model);                // Computa normais de um ObjModel, caso não existam.
 void BuildTrianglesAndAddToVirtualScene(ObjModel *); // Constrói representação de um ObjModel como malha de triângulos para renderização
 void DrawVirtualObject(const char *object_name);
@@ -228,8 +235,11 @@ float wallWidth = 20.0f;
 float wallHeight = 5.0f;
 
 std::vector<RectangularObject> walls;
+std::vector<BoxToMove> boxesToMove;
 bool isLastLevelFinished = false;
-
+float t = glfwGetTime() + 1.45;
+float now = glfwGetTime();
+bool batata = false;
 /* Boxes */
 // Quanto maior X, mais pra direita
 // Quanto maior Y, mais pra cima
@@ -278,7 +288,7 @@ bool testCollisionWithWalls(RectangularObject obj, DIRECTION direction, glm::vec
 {
     RectangularObject obj_clone = obj.clone();
 
-    obj_clone.move(direction, viewVector);
+    obj_clone.move(direction);
 
     for (int i = 0; i < walls.size(); i++)
     {
@@ -323,11 +333,16 @@ void checkLevelFinished()
 {
     if (isGameFinished())
     {
+        glfwSetTime(0);
         wIsPressed = false;
         timeT = 0;
-        cameraLivre = Camera(3.13, 2.0f, 0, 50, 10.f, 60, 40);
+        cameraLivre = Camera(6.45, 14.68f, 0, 50, -14.20f, 60, 40);
         readObjectsFromFile("../../data/" + std::to_string(fileNumber) + ".txt", player, walls, boxes, checkpoints);
         shouldShowMapBezierOverview = true;
+        t = glfwGetTime() + 1.45;
+        now = glfwGetTime();
+        lookAt = false;
+        freeCam = true;
     }
 }
 
@@ -335,7 +350,7 @@ bool testBoxCollisionWithBoxes(int box_id, DIRECTION direction, glm::vec4 view)
 {
     RectangularObject box = boxes[box_id].clone();
 
-    box.move(direction, view);
+    box.move(direction);
 
     for (int i = 0; i < boxes.size(); i++)
     {
@@ -381,12 +396,13 @@ bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
             bool didNotCollideWithOtherBoxes = !testBoxCollisionWithBoxes(i, player.getDirection(), viewVector);
             if (didNotCollideWithWalls && didNotCollideWithOtherBoxes)
             {
-                boxes[i].move(player.getDirection(), viewVector);
-                if (testCheckpoints(boxes[i]))
-                {
-                    printf("You reached a checkpoint, keep going!\n");
-                    checkLevelFinished();
-                }
+                BoxToMove box = {
+                    .boxId = i,
+                    .step = 4,
+                    .dir = player.getDirection()};
+                boxesToMove.push_back(box);
+                /*  boxes[i]
+                     .move(player.getDirection(), viewVector); */
                 return true;
             }
             else
@@ -511,19 +527,17 @@ int main()
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    readObjectsFromFile("../../data/" + std::to_string(1) + ".txt", player, walls, boxes, checkpoints);
+    readObjectsFromFile("../../data/" + std::to_string(fileNumber) + ".txt", player, walls, boxes, checkpoints);
     glm::vec3 bezierPoints[4] = {
         glm::vec3(-40, 30, 20),
         glm::vec3(-40, 10, 20),
         glm::vec3(40, 30, -6),
         glm::vec3(50.0f, 40, 4)};
 
-    float t = glfwGetTime() + 1;
-    float now = glfwGetTime();
-
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
+        checkLevelFinished();
 
         if (now <= t)
         {
@@ -566,12 +580,25 @@ int main()
             }
             timeT--;
         }
+
         else if (!freeCam)
         {
             rotateLeft = false;
             rotateRight = false;
             wIsPressed = false;
             timeT = 0;
+        }
+
+        for (int i = 0; i < boxesToMove.size(); i++)
+        {
+            BoxToMove boxToMove = boxesToMove[i];
+            boxesToMove.erase(boxesToMove.begin() + i);
+            if (boxToMove.step > 0)
+            {
+                boxes[boxToMove.boxId].move(boxToMove.dir);
+                boxToMove.step--;
+                boxesToMove.push_back(boxToMove);
+            }
         }
 
         if (!isGameFinished())
@@ -690,7 +717,7 @@ int main()
         /* Draw checkpoints */
         for (int i = 0; i < checkpoints.size(); i++)
         {
-            model = checkpoints[i].getModelMatrix() * Matrix_Scale(0.4, 0.4, 0.4);
+            model = checkpoints[i].getModelMatrix() * Matrix_Scale(0.4, 0.4, 0.4) * Matrix_Rotate_Y((float)glfwGetTime() * 0.1f);
 
             glUniformMatrix4fv(g_model_uniform, 1, GL_FALSE, glm::value_ptr(model));
             glUniform1i(g_object_id_uniform, 2);
@@ -1028,7 +1055,6 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
 
     if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
-        fileNumber--;
         readObjectsFromFile("../../data/" + std::to_string(fileNumber) + ".txt", player, walls, boxes, checkpoints);
     }
 }
@@ -1641,7 +1667,10 @@ void LoadTextureImage(const char *filename)
 
 void readObjectsFromFile(const std::string &filename, Player &player, std::vector<RectangularObject> &rectangularObjects, std::vector<RectangularObject> &boxes, std::vector<SphereObject> &sphereObjects)
 {
-    fileNumber++;
+    if (isLastLevelFinished)
+    {
+        fileNumber++;
+    }
     rectangularObjects.clear();
     boxes.clear();
     sphereObjects.clear();

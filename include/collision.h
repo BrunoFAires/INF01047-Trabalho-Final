@@ -44,24 +44,21 @@ struct RectangularObject
         return model;
     }
 
-    void move(DIRECTION direction, glm::vec4 viewVector, float qty = 1.0f)
+    void move(DIRECTION direction, float qty = 1.0f)
     {
-        float velocity = 1.0f;
-        glm::vec4 cameraAux = Matrix_Rotate_Y(1.5708) * viewVector;
-
         switch (direction)
         {
         case FORWARD:
-            z -= 4;
+            z -= 1;
             break;
         case BACKWARD:
-            z += 4;
+            z += 1;
             break;
         case LEFT:
-            x -= 4;
+            x -= 1;
             break;
         case RIGHT:
-            x += 4;
+            x += 1;
             break;
         }
     }
