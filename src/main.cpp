@@ -222,6 +222,7 @@ int timeT = 0;
 /* Level current info */
 int curr_remaining_checkpoints = 6;
 int curr_level = 1;
+int steps = 0;
 
 // Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
 bool g_UsePerspectiveProjection = true;
@@ -323,9 +324,7 @@ bool isGameFinished()
 {
     if (curr_remaining_checkpoints == 0)
     {
-        if (curr_level ==1) {
-            isLastLevelFinished = true;
-        }
+        isLastLevelFinished = true;
         return true;
     }
     return false;
@@ -336,6 +335,7 @@ void checkLevelFinished()
     if (isGameFinished())
     {
         glfwSetTime(0);
+        steps = 0;
         curr_level++;
         wIsPressed = false;
         timeT = 0;
@@ -347,6 +347,7 @@ void checkLevelFinished()
         now = glfwGetTime();
         lookAt = false;
         freeCam = true;
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 }
 
@@ -418,11 +419,13 @@ bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
     return true;
 }
 
-void updateRemainingCheckpoints() {
+void updateRemainingCheckpoints()
+{
     int remaining = checkpoints.size();
     for (int i = 0; i < boxes.size(); i++)
     {
-        if (testCheckpoints(boxes[i])) {
+        if (testCheckpoints(boxes[i]))
+        {
             remaining--;
         }
     }
@@ -461,6 +464,7 @@ int main()
     // Criamos uma janela do sistema operacional, com 800 colunas e 800 linhas
     // de pixels, e com título "INF01047 ...".
     GLFWwindow *window;
+    glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
     window = glfwCreateWindow(800, 800, "Sokoban 3D", NULL, NULL);
     if (!window)
     {
@@ -1003,6 +1007,7 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
         if (!testPlayerCollisionWithWalls(player.getDirection()) && rotateLeft == false && rotateRight == false && !freeCam)
         {
             timeT = 8;
+            steps++;
         }
     }
 
@@ -1077,6 +1082,8 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
         readObjectsFromFile("../../data/" + std::to_string(curr_level) + ".txt", player, walls, boxes, checkpoints);
+        steps = 0;
+        curr_remaining_checkpoints = checkpoints.size();
     }
 }
 
@@ -1088,13 +1095,14 @@ void ErrorCallback(int error, const char *description)
 
 void TextRendering_LevelInfo(GLFWwindow *window)
 {
+
     if (!shouldShowUI)
         return;
 
-    static char msg[50];
-    snprintf(msg, 50, "Sokoban 3D | Level: %d | Remaining checkpoints: %d", curr_level, curr_remaining_checkpoints);
-    
-    float x = -0.5f;
+    static char msg[70];
+    snprintf(msg, 70, "Sokoban 3D | Level: %d | Steps: %d | Remaining checkpoints: %d", curr_level, steps, curr_remaining_checkpoints);
+
+    float x = -0.3;
     float y = -0.92f;
 
     TextRendering_PrintString(window, msg, x, y, 1.2f);
