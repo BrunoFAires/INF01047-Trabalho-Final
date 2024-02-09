@@ -59,6 +59,7 @@ void PushMatrix(glm::mat4 M);
 void PopMatrix(glm::mat4 &M);
 
 bool shouldShowMapBezierOverview = true;
+bool shouldShowUI = true;
 
 struct ObjModel
 {
@@ -150,6 +151,8 @@ void TextRendering_ShowModelViewProjection(GLFWwindow *window, glm::mat4 project
 void TextRendering_ShowFramesPerSecond(GLFWwindow *window);
 void TextRendering_FreeCamera(GLFWwindow *window, Camera *camera);
 
+void TextRendering_LevelInfo(GLFWwindow *window);
+
 // Funções callback para comunicação com o sistema operacional e interação do
 // usuário. Veja mais comentários nas definições das mesmas, abaixo.
 void FramebufferSizeCallback(GLFWwindow *window, int width, int height);
@@ -159,6 +162,8 @@ void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow *window, double xpos, double ypos);
 void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 void LoadTextureImage(const char *filename); // Função que carrega imagens de textura
+
+void updateRemainingCheckpoints();
 
 void readObjectsFromFile(const std::string &filename, Player &player, std::vector<RectangularObject> &rectangularObjects, std::vector<RectangularObject> &boxes, std::vector<SphereObject> &sphereObjects);
 
@@ -213,7 +218,10 @@ bool aIsPressed = false;
 bool sIsPressed = false;
 bool dIsPressed = false;
 int timeT = 0;
-int fileNumber = 1;
+
+/* Level current info */
+int curr_remaining_checkpoints = 6;
+int curr_level = 1;
 
 // Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
 bool g_UsePerspectiveProjection = true;
@@ -239,7 +247,7 @@ std::vector<BoxToMove> boxesToMove;
 bool isLastLevelFinished = false;
 float t = glfwGetTime() + 1.45;
 float now = glfwGetTime();
-bool batata = false;
+
 /* Boxes */
 // Quanto maior X, mais pra direita
 // Quanto maior Y, mais pra cima
@@ -313,18 +321,14 @@ bool testCheckpoints(RectangularObject object)
 
 bool isGameFinished()
 {
-    for (int i = 0; i < boxes.size(); i++)
+    if (curr_remaining_checkpoints == 0)
     {
-        if (!testCheckpoints(boxes[i]))
-        {
-            // If any box still not colliding with a checkpoint, then game is not finished
-            return false;
+        if (curr_level ==1) {
+            isLastLevelFinished = true;
         }
+        return true;
     }
-
-    isLastLevelFinished = true;
-
-    return true;
+    return false;
 }
 
 void checkLevelFinished()
@@ -332,11 +336,13 @@ void checkLevelFinished()
     if (isGameFinished())
     {
         glfwSetTime(0);
+        curr_level++;
         wIsPressed = false;
         timeT = 0;
         cameraLivre = Camera(6.45, 14.68f, 0, 50, -14.20f, 60, 40);
-        readObjectsFromFile("../../data/" + std::to_string(fileNumber) + ".txt", player, walls, boxes, checkpoints);
+        readObjectsFromFile("../../data/" + std::to_string(curr_level) + ".txt", player, walls, boxes, checkpoints);
         shouldShowMapBezierOverview = true;
+        curr_remaining_checkpoints = checkpoints.size();
         t = glfwGetTime() + 1.45;
         now = glfwGetTime();
         lookAt = false;
@@ -393,6 +399,7 @@ bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
             bool didNotCollideWithOtherBoxes = !testBoxCollisionWithBoxes(i, player.getDirection(), viewVector);
             if (didNotCollideWithWalls && didNotCollideWithOtherBoxes)
             {
+                // Quando uma caixa é movida, precisamos checar se foi obtido um novo checkpoint
                 BoxToMove box = {
                     .boxId = i,
                     .step = 4,
@@ -409,6 +416,17 @@ bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
         }
     }
     return true;
+}
+
+void updateRemainingCheckpoints() {
+    int remaining = checkpoints.size();
+    for (int i = 0; i < boxes.size(); i++)
+    {
+        if (testCheckpoints(boxes[i])) {
+            remaining--;
+        }
+    }
+    curr_remaining_checkpoints = remaining;
 }
 
 // Número de texturas carregadas pela função LoadTextureImage()
@@ -524,7 +542,7 @@ int main()
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    readObjectsFromFile("../../data/" + std::to_string(fileNumber) + ".txt", player, walls, boxes, checkpoints);
+    readObjectsFromFile("../../data/" + std::to_string(curr_level) + ".txt", player, walls, boxes, checkpoints);
     glm::vec3 bezierPoints[4] = {
         glm::vec3(-40, 30, 20),
         glm::vec3(-40, 10, 20),
@@ -595,6 +613,7 @@ int main()
                 boxes[boxToMove.boxId].move(boxToMove.dir);
                 boxToMove.step--;
                 boxesToMove.push_back(boxToMove);
+                updateRemainingCheckpoints();
             }
         }
 
@@ -764,6 +783,11 @@ int main()
         // por segundo (frames per second).
         TextRendering_ShowFramesPerSecond(window);
         TextRendering_FreeCamera(window, &cameraLivre);
+
+        /* USER INTERFACE */
+        TextRendering_LevelInfo(window);
+
+        /* */
 
         // O framebuffer onde OpenGL executa as operações de renderização não
         // é o mesmo que está sendo mostrado para o usuário, caso contrário
@@ -1052,7 +1076,7 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
 
     if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
-        readObjectsFromFile("../../data/" + std::to_string(fileNumber) + ".txt", player, walls, boxes, checkpoints);
+        readObjectsFromFile("../../data/" + std::to_string(curr_level) + ".txt", player, walls, boxes, checkpoints);
     }
 }
 
@@ -1060,6 +1084,20 @@ void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mod)
 void ErrorCallback(int error, const char *description)
 {
     fprintf(stderr, "ERROR: GLFW: %s\n", description);
+}
+
+void TextRendering_LevelInfo(GLFWwindow *window)
+{
+    if (!shouldShowUI)
+        return;
+
+    static char msg[50];
+    snprintf(msg, 50, "Sokoban 3D | Level: %d | Remaining checkpoints: %d", curr_level, curr_remaining_checkpoints);
+    
+    float x = -0.5f;
+    float y = -0.92f;
+
+    TextRendering_PrintString(window, msg, x, y, 1.2f);
 }
 
 // Esta função recebe um vértice com coordenadas de modelo p_model e passa o
@@ -1664,10 +1702,6 @@ void LoadTextureImage(const char *filename)
 
 void readObjectsFromFile(const std::string &filename, Player &player, std::vector<RectangularObject> &rectangularObjects, std::vector<RectangularObject> &boxes, std::vector<SphereObject> &sphereObjects)
 {
-    if (isLastLevelFinished)
-    {
-        fileNumber++;
-    }
     rectangularObjects.clear();
     boxes.clear();
     sphereObjects.clear();
