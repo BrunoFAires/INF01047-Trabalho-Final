@@ -277,7 +277,6 @@ bool testPlayerCollisionWithWalls(DIRECTION direction)
     {
         if (testAABBCollision(player_clone->asRectangularObject(), walls[i]))
         {
-            printf("Collision with wall!\n");
             return true;
         }
     }
@@ -294,7 +293,6 @@ bool testCollisionWithWalls(RectangularObject obj, DIRECTION direction, glm::vec
     {
         if (testAABBCollision(obj_clone, walls[i]))
         {
-            printf("Object Collision with wall!\n");
             return true;
         }
     }
@@ -391,7 +389,6 @@ bool shouldMoveAfterCollisionWithBoxes(DIRECTION direction)
     {
         if (testAABBCollision(player_clone->asRectangularObject(), boxes[i]))
         {
-            printf("Player collided with box!\n");
             bool didNotCollideWithWalls = !testCollisionWithWalls(boxes[i], player.getDirection(), viewVector);
             bool didNotCollideWithOtherBoxes = !testBoxCollisionWithBoxes(i, player.getDirection(), viewVector);
             if (didNotCollideWithWalls && didNotCollideWithOtherBoxes)
