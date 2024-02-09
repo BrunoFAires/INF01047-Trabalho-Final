@@ -18,26 +18,27 @@ O jogador poderá rotacionar a empilhadeira em 90º ao pressionar as teclas `A` 
 Ao movimentar-se em direção a uma caixa, caso não haja algum obstáculo impedindo o movimento, a caixa será movimentada naquela direção.
 
 ### Atalhos do teclado
-`W`: Move o jogador para a direção em que está apontando.
-`A`: Rotaciona o jogador em 90º à esquerda.
-`D`: Rotaciona o jogador em 90º à direita.
-`Mouse esquerdo`: Ao ser pressionado, altera a angulação da câmera
-`C`: Troca a câmera para modo terceira pessoa.
-`V`: Troca a câmera para modo livre.
-`S`: Movimenta a câmera para trás (apenas em câmera modo livre).
-`H`: Habilita o debug das matrizes gráficas.
-`R`: Reinicia o nível atual.
+- `W`: Move o jogador para a direção em que está apontando.
+- `A`: Rotaciona o jogador em 90º à esquerda.
+- `D`: Rotaciona o jogador em 90º à direita.
+- `Mouse esquerdo`: Ao ser pressionado, altera a angulação da câmera
+- `C`: Troca a câmera para modo terceira pessoa.
+- `V`: Troca a câmera para modo livre.
+- `S`: Movimenta a câmera para trás (apenas em câmera modo livre).
+- `H`: Habilita o debug das matrizes gráficas.
+- `R`: Reinicia o nível atual.
 
 ![Game screenshot](third_person.png)
 
 ## Como compilar e executar
-=== Windows
-===================================
+
+### Windows
+
 Para compilar e executar este projeto no Windows, você possui duas
 opções para compilação:
 
---- Windows com Code::Blocks
--------------------------------------------
+#### Windows com Code::Blocks
+
 Baixe a IDE Code::Blocks em http://codeblocks.org/ e abra o arquivo
 "Laboratorio_X.cbp".
 
@@ -47,8 +48,8 @@ estiver utilizando versões mais antigas do Code::Blocks (17.12 ou anteriores)
 você precisa alterar o "Build target" para "Debug (CBlocks 17.12 32-bit)" ou
 "Release (CBlocks 17.12 32-bit)" antes de compilar o projeto.
 
---- Windows com VSCode (Visual Studio Code)
--------------------------------------------
+#### Windows com VSCode (Visual Studio Code)
+
 1) Instale o VSCode seguindo as instruções em https://code.visualstudio.com/ .
 
 2) Instale o compilador GCC no Windows seguindo as instruções em
@@ -85,8 +86,8 @@ Veja mais instruções de uso do CMake no VSCode em:
 
 https://github.com/microsoft/vscode-cmake-tools/blob/main/docs/README.md
 
-=== Linux
-===================================
+### Linux
+
 Para compilar e executar este projeto no Linux, primeiro você precisa instalar
 as bibliotecas necessárias. Para tanto, execute o comando abaixo em um terminal.
 Esse é normalmente suficiente em uma instalação de Linux Ubuntu:
@@ -101,14 +102,14 @@ Se você usa Linux Mint, talvez seja necessário instalar mais algumas bibliotec
 
 Após a instalação das bibliotecas acima, você possui várias opções para compilação:
 
---- Linux com Makefile
--------------------------------------------
+#### Linux com Makefile
+
 Abra um terminal, navegue até a pasta "Laboratorio_0X_Codigo_Fonte", e execute
 o comando "make" para compilar. Para executar o código compilado, execute o
 comando "make run".
 
---- Linux com CMake
--------------------------------------------
+#### Linux com CMake
+
 Abra um terminal, navegue até a pasta "Laboratorio_0X_Codigo_Fonte", e execute
 os seguintes comandos:
 
@@ -118,8 +119,7 @@ os seguintes comandos:
     make         # Realiza a compilação
     make run     # Executa o código compilado
 
---- Linux com VSCode
--------------------------------------------
+#### Linux com VSCode
 
 1) Instale o VSCode seguindo as instruções em https://code.visualstudio.com/ .
 
@@ -137,13 +137,13 @@ Veja mais instruções de uso do CMake no VSCode em:
 
 https://github.com/microsoft/vscode-cmake-tools/blob/main/docs/README.md
 
---- Linux com Code::Blocks
--------------------------------------------
+#### Linux com Code::Blocks
+
 Instale a IDE Code::Blocks (versão Linux em http://codeblocks.org/), abra o
 arquivo "Laboratorio_X.cbp", e modifique o "Build target" de "Debug" para "Linux".
 
-=== macOS
-===================================
+### macOS
+
 Para compilar e executar esse projeto no macOS, primeiro você precisa instalar o
 HOMEBREW, um gerenciador de pacotes para facilitar a instação de bibliotecas. O
 HOMEBREW pode ser instalado com o seguinte comando no terminal:
@@ -155,8 +155,8 @@ ser feito pelo terminal com o comando:
 
     brew install glfw
 
---- macOS com Makefile
--------------------------------------------
+#### macOS com Makefile
+
 Abra um terminal, navegue até a pasta "Laboratorio_0X_Codigo_Fonte", e execute
 o comando "make -f Makefile.macOS" para compilar. Para executar o código
 compilado, execute o comando "make -f Makefile.macOS run".
@@ -167,15 +167,7 @@ currently not available due to the lack of Mac developers, or developers that
 own a Mac. We could use an extra Mac developer (or two) to work on Mac
 compatibility issues."
 
---- macOS com CMake
--------------------------------------------
-Você utiliza macOS e conseguiu utilizar o CMake para compilar este projeto?
-Então mande um e-mail para o professor em <eslgastal@inf.ufrgs.br> com
-as alterações necessárias no CMakeLists.txt e uma lista de instruções
-para colocar neste LEIAME.txt .
-
-=== Soluções de Problemas
-===================================
+#### Soluções de Problemas
 
 Caso você tenha problemas em executar o código deste projeto, tente atualizar o
 driver da sua placa de vídeo.
