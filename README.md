@@ -4,7 +4,7 @@ Trabalho desenvolvido para a disciplina de Fundamentos de Computação Gráfica
 INF01047 | UFRGS | 2023/2
 
 Alunos:
-- Bruno ()
+- Bruno (00323680)
 - Eduardo Raupp Peretto (00313439)
 
 ![Sokoban 3D](gamescreen.png)
@@ -13,7 +13,7 @@ Alunos:
 
 O objetivo do jogo é levar todas as caixas aos checkpoints. Quando todos os checkpoints forem alcançados, o nível é finalizado, e o jogador avança para o próximo nível.
 
-O jogador poderá rotacionar a empilhadeira em 90º ao pressionar as teclas `A` (rotação à direita) ou `D` (rotação à esquerda), e então mover-se para a frente, utilizando a tecla `W`.
+O jogador poderá rotacionar a empilhadeira em 90º ao pressionar as teclas `A` (rotação à esquerda) ou `D` (rotação à direita), e então mover-se para a frente, utilizando a tecla `W`.
 
 Ao movimentar-se em direção a uma caixa, caso não haja algum obstáculo impedindo o movimento, a caixa será movimentada naquela direção.
 
@@ -22,7 +22,7 @@ Ao movimentar-se em direção a uma caixa, caso não haja algum obstáculo imped
 - `A`: Rotaciona o jogador em 90º à esquerda.
 - `D`: Rotaciona o jogador em 90º à direita.
 - `Mouse esquerdo`: Ao ser pressionado, altera a angulação da câmera
-- `C`: Troca a câmera para modo terceira pessoa.
+- `C`: Troca a câmera para modo terceira pessoa/Look at.
 - `V`: Troca a câmera para modo livre.
 - `S`: Movimenta a câmera para trás (apenas em câmera modo livre).
 - `H`: Habilita o debug das matrizes gráficas.
@@ -173,20 +173,28 @@ Caso você tenha problemas em executar o código deste projeto, tente atualizar 
 driver da sua placa de vídeo.
 
 ## Processo de desenvolvimento
-O trabalho foi desenvolvido pelos membros Bruno e Eduardo, durante a disciplina de Fundamentos de Computação Gráfica. Ambos membros desenvolveram se baseando fortemente nos conceitos teóricos e práticos, sobretudo construídos durante os laboratórios da disciplina. Portanto, parte do código implementado para o Sokoban 3D possui influência direta dos códigos fornecidos pelo professor durante a disciplina, especialmente para, por instância, inicialização de módulos OpenGL, carregamento de texturas, construção das matrizes gráficas, aplicação de transformações geométricas, e algoritmos vistos em aula, como a curva de Bezier cúbica.
+O trabalho foi desenvolvido pelos membros Bruno e Eduardo, durante a disciplina de Fundamentos de Computação Gráfica. Ambos membros desenvolveram baseando-se fortemente nos conceitos teóricos e práticos, sobretudo construídos durante os laboratórios da disciplina. Portanto, parte do código implementado para o Sokoban 3D possui influência direta dos códigos fornecidos pelo professor durante a disciplina, especialmente para, por instância, inicialização de módulos OpenGL, carregamento de texturas, construção das matrizes gráficas, aplicação de transformações geométricas, e algoritmos vistos em aula, como a curva de Bezier cúbica.
 
 Ambos membros fizeram usos pontuais de IAs generativas como o ChatGPT, mas limitando-se apenas a:
     - Entendimento de código (ex: fornecidos em laboratórios)
     - Entendimento de como editar o código para expandir funcionalidades
     - Encontrar bugs e problemas nos códigos desenvolvidos, e como resolvê-los
     - Questionamentos específicos sobre C++ (ex: como criar classes, interfaces, iterações)
+    - Geração de pseudo-códigos
 Cabe ressaltar que nenhum código presente neste projeto foi diretamente gerado por IA generativa. Ainda assim, destacamos que esse tipo de ferramenta auxiliou bastante a equipe no entendimento e direcionamento do desenvolvimento.
 
 ## Contribuições dos membros
 O desenvolvimento foi executado de maneira colaborativa, com reuniões de alinhamento e pair programming. No entanto, cada membro ficou responsável por diferentes funcionalidades no projeto. Abaixo, segue a listagem de implementações que cada membro liderou:
 * Bruno:
-    - .
-    - ...
+    - Criação dos níveis
+    - Movimentação do personagem
+    - Cêmeras look at e terceira pessoa
+    - Criação de texturas
+    - Modelagem de objetos
+    - Modelos de iluminação e interpolação
+    - Colisão ponto-esfera e ponto-plano
+    - Leitura dos arquivos de nível
+    - Animações
 * Eduardo:
     - Spawn de caixas no cenário
     - Classe englobar objetos cúbicos (RectangularObject)
@@ -201,4 +209,4 @@ O desenvolvimento foi executado de maneira colaborativa, com reuniões de alinha
     - UI com informações do level atual
 
 ## Vídeo demonstrativo
-[Incluir link]
+https://www.youtube.com/watch?v=Fa7m7uzSQfk
