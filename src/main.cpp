@@ -551,7 +551,7 @@ int main()
         glm::vec3(-40, 30, 20),
         glm::vec3(-40, 10, 20),
         glm::vec3(40, 30, -6),
-        glm::vec3(50.0f, 40, 4)};
+        glm::vec3(55.0f, 40, 4)};
 
     // Ficamos em um loop infinito, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
@@ -566,7 +566,7 @@ int main()
                                now * now * now * bezierPoints[3];
 
             cameraLivre.setPosition(newPos.x, newPos.y, newPos.z);
-            cameraLivre.setCameraTheta(0.01);
+            cameraLivre.updateTheta(now * 2);
             cameraLivre.updateView();
 
             now = glfwGetTime() / 4;

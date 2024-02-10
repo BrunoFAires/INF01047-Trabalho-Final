@@ -25,6 +25,7 @@ public:
     glm::vec4 getPositionVector();
     glm::vec4 getViewVector();
     glm::vec4 getUpVector();
+    void updateTheta(float value);
 
     void setCameraTheta(float value);
     void setCameraPhi(float value);

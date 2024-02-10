@@ -54,6 +54,11 @@ void Camera::setCameraTheta(float value)
     g_CameraTheta -= value;
 }
 
+void Camera::updateTheta(float value)
+{
+    g_CameraTheta = -value;
+}
+
 void Camera::setCameraPhi(float value)
 {
     const float minPhi = 1.58f;
