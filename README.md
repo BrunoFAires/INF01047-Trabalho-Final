@@ -4,7 +4,7 @@ Trabalho desenvolvido para a disciplina de Fundamentos de Computação Gráfica
 INF01047 | UFRGS | 2023/2
 
 Alunos:
-- Bruno (00323680)
+- Bruno Ferreira Aires (00323680)
 - Eduardo Raupp Peretto (00313439)
 
 ![Sokoban 3D](gamescreen.png)
